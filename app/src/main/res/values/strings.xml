@@ -1,0 +1,135 @@
+<resources>
+    <!-- Generic strings -->
+    <string name="generic_app_name">Snout</string>
+    <string name="generic_back">Back</string>
+    <string name="generic_cancel">Cancel</string>
+    <string name="generic_continue">Continue</string>
+    <string name="generic_save">Save</string>
+    <string name="generic_seconds">seconds</string>
+    <string name="generic_this_is_irrevocable">This cannot be undone</string>
+    <string name="generic_key_storage_strongbox">StrongBox</string>
+    <string name="generic_key_storage_tee">Trusted Environment</string>
+    <string name="generic_key_storage_software">software</string>
+
+
+    <!-- Initial setup screen -->
+    <string name="setup_welcome">Welcome to %1$d</string>
+    <string name="setup_enable_backups">Enable encrypted backups?</string>
+    <string name="setup_enable_backups_description">Snout uses your phone’s secure hardware to ensure that your secrets can not be extracted by anyone - including by you.\n\nIf you choose to enable backups, Snout will store an additional copy of your secrets encrypted using a key which is not capable of decrypting them.\n\nYou may erase and disable encrypted backups at any time. Once backups are disabled however, they can not be re-enabled unless you reset your vault and re-add all your secrets.</string>
+    <string name="setup_enable_backups_card_enable">Enable backups</string>
+    <string name="setup_enable_backups_card_enable_description">You will be able to create manual backups of your secrets.</string>
+    <string name="setup_enable_backups_card_disable">Skip backups</string>
+    <string name="setup_enable_backups_card_disable_description">Secrets will not be recoverable under any circumstances.</string>
+    <string name="setup_enable_backups_card_import">Import and enable backups</string>
+    <string name="setup_enable_backups_card_import_description">Import your secrets from a previously saved backup. You will be able to create manual backups of your secrets.</string>
+
+
+    <!-- Display backup seed screen -->
+    <string name="seed_display_recovery_phrase">Your Recovery Phrase</string>
+    <string name="seed_display_write_this_down">Write down these words in order. They are the only way to recover your backups.</string>
+    <string name="seed_display_keep_them_safe">Keep them in a safe place. Do NOT store them on this device. Never share them with anyone.</string>
+
+
+    <!-- Input backup seed screen -->
+    <string name="seed_input_enter_recovery_phrase">Enter your Recovery Phrase</string>
+    <string name="seed_input_restore_vault">Restore vault</string>
+
+
+    <!-- Vault locked screen -->
+    <string name="locked_vault_locked">Vault is locked</string>
+    <string name="locked_tap_to_unlock">Tap anywhere to unlock</string>
+
+
+    <!-- List secrets screen -->
+    <string name="secrets_add_secret">Add secret</string>
+    <string name="secrets_sort_alphabetically_active">Sort alphabetically (active))</string>
+    <string name="secrets_sort_alphabetically_inactive">Sort alphabetically</string>
+    <string name="secrets_filter_active">Filter (active))</string>
+    <string name="secrets_filter_inactive">Filter</string>
+    <string name="secrets_filter_placeholder">Filter accounts</string>
+    <string name="secrets_filter_clear">Clear filter</string>
+    <string name="secrets_lock_screen">Lock screen</string>
+    <string name="secrets_settings">Settings</string>
+
+    <string name="secrets_add_secret_sheet_heading">Add Secret</string>
+    <string name="secrets_add_secret_sheet_description">Choose a source to add a new account.</string>
+    <string name="secrets_add_secret_sheet_scan_qr_code">Scan QR Code</string>
+    <string name="secrets_add_secret_sheet_scan_image">Scan Image</string>
+    <string name="secrets_add_secret_sheet_enter_manually">Enter Manually</string>
+
+    <string name="secrets_actions_sheet_no_account">(N/A)</string>
+    <string name="secrets_actions_sheet_edit">Edit Metadata</string>
+    <string name="secrets_actions_sheet_delete">Delete</string>
+
+
+    <!-- Edit metadata screen -->
+    <string name="edit_edit">Edit metadata</string>
+
+
+    <!-- Add secret screens -->
+    <string name="add_secret_add_secret">Add secret</string>
+
+
+    <!-- Settings screen -->
+    <string name="settings_heading">Settings</string>
+
+    <string name="settings_enable_backups">Enable backups</string>
+    <string name="settings_enable_backups_description">Allow the creation of encrypted backups.\n\nEven when enabled, backups are not created automatically. You need to export them manually.</string>
+    <string name="settings_enable_backups_export">Export backup</string>
+    <string name="settings_enable_backups_disable_dialog_confirm">Disable backups</string>
+    <string name="settings_enable_backups_disable_dialog_text">Backups will be permanently disabled. If you lose access to your device, your secrets will be gone forever.</string>
+
+    <string name="settings_biometric_lock">Biometric lock</string>
+    <string name="settings_biometric_lock_description">Require biometric unlock to view accounts.\n\nAccount list is always encrypted and unlock is always required to view OTP codes, regardless of this setting.</string>
+
+    <string name="settings_lock_on_minimize">Lock on minimize</string>
+    <string name="settings_lock_on_minimize_description">Automatically lock the vault after a grace period when the app is minimized.</string>
+    <string name="settings_lock_on_minimize_grace_period">Grace period</string>
+
+    <string name="settings_screen_security">Screen security</string>
+    <string name="settings_screen_security_description">Prevent screenshots and other methods of visual data extraction.</string>
+
+    <string name="settings_hide_secrets_from_screen_readers">Hide secrets from screen readers</string>
+    <string name="settings_hide_secrets_from_screen_readers_description">Don’t read secret values like one-time codes and setup keys out loud. This reduces the risk of data capture, but may make it harder to use the app with accessibility tools.</string>
+
+    <string name="settings_key_storage_overview">Key storage overview</string>
+    <string name="settings_key_storage_overview_description">Get an overview of the security of your vault.</string>
+    <string name="settings_key_storage_overview_sheet_heading">Key Storage Overview</string>
+    <string name="settings_key_storage_overview_sheet_description">Review the security of your keys and secrets.</string>
+    <string name="settings_key_storage_overview_sheet_backup_keys_stored_in">Backup keys are stored in %1$s.</string>
+    <string name="settings_key_storage_overview_sheet_backups_disabled">Backups are disabled.</string>
+    <plurals name="settings_key_storage_overview_sheet_secret_group_grade">
+        <item quantity="one">%1$d/%2$d secret stored in %3$s.</item>
+        <item quantity="other">%1$d/%2$d secrets stored in %3$s.</item>
+    </plurals>
+    <string name="settings_key_storage_overview_sheet_grade_excellent">Excellent</string>
+    <string name="settings_key_storage_overview_sheet_grade_good">Good</string>
+    <string name="settings_key_storage_overview_sheet_grade_weak">Weak</string>
+
+    <string name="settings_erase_data">Erase data</string>
+    <string name="settings_erase_data_description">Deletes all vault data permanently and resets all settings to their default values.</string>
+    <string name="settings_erase_data_dialog_text">All your secrets will be permanently erased.</string>
+    <string name="settings_erase_data_dialog_confirm">Erase data</string>
+
+
+    <!-- TOTP secret form -->
+    <string name="secret_form_issuer">Issuer</string>
+    <string name="secret_form_username">User name</string>
+    <string name="secret_form_secret">Secret</string>
+    <string name="secret_form_digits">Digits</string>
+    <string name="secret_form_period">Period</string>
+    <string name="secret_form_algorithm">TOTP algorithm</string>
+    <string name="secret_form_show_secret">Show secret</string>
+    <string name="secret_form_hide_secret">Hide secret</string>
+    <string name="secret_form_currently_unusable_with_screen_reader">Secret entry is currently configured to be hidden from screen readers. Turn off “Hide secrets from screen readers” in settings to enter secret using voice navigation, or use QR scan or file import instead.</string>
+
+
+    <!-- View model -->
+    <string name="view_model_auth_create_vault">Authenticate to create vault</string>
+    <string name="view_model_auth_unlock_vault">Authenticate to unlock vault</string>
+    <string name="view_model_auth_reveal_code">Authenticate to reveal code</string>
+    <string name="view_model_auth_vault_bioprompt_enable">Authenticate to enable vault biometric prompt</string>
+    <string name="view_model_auth_vault_bioprompt_disable">Authenticate to disable vault biometric prompt</string>
+    <string name="view_model_auth_default_reason">Authenticate</string>
+    <string name="view_model_auth_default_subtitle">Confirm your identity</string>
+</resources>

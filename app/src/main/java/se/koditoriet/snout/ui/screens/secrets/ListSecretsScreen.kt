@@ -1,0 +1,421 @@
+package se.koditoriet.snout.ui.screens.secrets
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.isSensitiveData
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import se.koditoriet.snout.SortMode
+import se.koditoriet.snout.appStrings
+import se.koditoriet.snout.crypto.AuthenticationFailedException
+import se.koditoriet.snout.ui.components.sheet.BottomSheet
+import se.koditoriet.snout.ui.primaryDisabled
+import se.koditoriet.snout.ui.primaryHint
+import se.koditoriet.snout.ui.sheets.AddSecretsSheet
+import se.koditoriet.snout.ui.sheets.SecretActionsSheet
+import se.koditoriet.snout.vault.NewTotpSecret
+import se.koditoriet.snout.vault.TotpSecret
+import kotlin.time.Clock
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ListSecretsScreen(
+    secrets: List<TotpSecret>,
+    sortMode: SortMode,
+    hideSecretsFromAccessibility: Boolean,
+    getTotpCodes: suspend (TotpSecret) -> List<String>,
+    onLockVault: () -> Unit,
+    onSettings: () -> Unit,
+    onAddSecretByQR: () -> Unit,
+    onAddSecret: (NewTotpSecret?) -> Unit,
+    onSortModeChange: (SortMode) -> Unit,
+    onEditSecretMetadata: (TotpSecret) -> Unit,
+    onDeleteSecret: (TotpSecret) -> Unit,
+    clock: Clock = Clock.System,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var sheetViewState by remember { mutableStateOf<SheetViewState?>(null) }
+    var filter by remember { mutableStateOf<String?>(null) }
+
+    Scaffold(
+        topBar = {
+            TopBar(
+                sortMode = sortMode,
+                onSortModeChange = onSortModeChange,
+                filterEnabled = filter != null,
+                onFilterToggle = { filter = if (filter == null) "" else null },
+                onLockVault = onLockVault,
+                onSettings = onSettings,
+            )
+        },
+        floatingActionButton = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                FloatingActionButton(onClick = { sheetViewState = SheetViewState.AddSecrets }) {
+                    Icon(Icons.Filled.Add, appStrings.secretsScreen.addSecret)
+                }
+            }
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+            val filterEnabled = filter != null
+            val filterQuery = filter ?: ""
+
+            AnimatedVisibility(filterEnabled) {
+                FilterTextField(
+                    filterEnabled = filterEnabled,
+                    filterQuery = filterQuery,
+                    onFilterChange = { filter = it },
+                )
+            }
+
+            SecretList(
+                filterQuery = filterQuery,
+                secrets = secrets,
+                selectedSecret = (sheetViewState as? SheetViewState.SecretActions)?.secret,
+                sortMode = sortMode,
+                hideSecretsFromAccessibility = hideSecretsFromAccessibility,
+                clock = clock,
+                getTotpCodes = getTotpCodes,
+                onLongPressSecret = { sheetViewState = SheetViewState.SecretActions(it) }
+            )
+        }
+
+        sheetViewState?.let { viewState ->
+            BottomSheet(
+                hideSheet = { sheetViewState = null },
+                sheetState = sheetState,
+                padding = padding,
+            ) {
+                when (viewState) {
+                    SheetViewState.AddSecrets -> {
+                        AddSecretsSheet(
+                            onAddSecretByQR = {
+                                onAddSecretByQR()
+                                sheetViewState = null
+                            },
+                            onAddSecret = {
+                                onAddSecret(it)
+                                sheetViewState = null
+                            },
+                        )
+                    }
+                    is SheetViewState.SecretActions -> {
+                        SecretActionsSheet(
+                            totpSecret = viewState.secret,
+                            onEditMetadata = {
+                                onEditSecretMetadata(it)
+                                sheetViewState = null
+                            },
+                            onDeleteSecret = {
+                                onDeleteSecret(it)
+                                sheetViewState = null
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SecretList(
+    filterQuery: String,
+    secrets: List<TotpSecret>,
+    selectedSecret: TotpSecret?,
+    sortMode: SortMode,
+    hideSecretsFromAccessibility: Boolean,
+    clock: Clock,
+    getTotpCodes: suspend (TotpSecret) -> List<String>,
+    onLongPressSecret: (TotpSecret) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp)
+    ) {
+        val filteredSecrets = when (filterQuery.isNotBlank()) {
+            true -> {
+                val filterParts = filterQuery
+                    .split(' ')
+                    .filter { it.isNotBlank() }
+                    .map { it.lowercase() }
+                secrets.filter {
+                    filterParts.all { f -> f in it.issuer.lowercase() || f in (it.account?.lowercase() ?: "") }
+                }
+            }
+
+            false -> secrets
+        }
+        val sortedSecrets = when (sortMode) {
+            SortMode.Manual -> filteredSecrets
+            SortMode.Alphabetic -> filteredSecrets.sortedWith(
+                compareBy<TotpSecret> { it.issuer.lowercase() }.thenBy { it.account?.lowercase() }
+            )
+        }
+        items(sortedSecrets) { item ->
+            ListRow(
+                totpSecret = item,
+                selected = item.id == selectedSecret?.id,
+                hideSecretsFromAccessibility = hideSecretsFromAccessibility,
+                clock = clock,
+                getTotpCodes = getTotpCodes,
+                onLongPressSecret = onLongPressSecret,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilterTextField(
+    filterEnabled: Boolean,
+    filterQuery: String,
+    onFilterChange: (String) -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(filterEnabled) {
+        if (filterEnabled) {
+            focusRequester.requestFocus()
+            keyboard?.show()
+        }
+    }
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .focusRequester(focusRequester),
+        value = filterQuery,
+        singleLine = true,
+        placeholder = { Text(appStrings.secretsScreen.filterPlaceholder) },
+        onValueChange = { onFilterChange(it) },
+        trailingIcon = {
+            if (filterQuery.isNotEmpty()) {
+                IconButton(onClick = { onFilterChange("") }) {
+                    Icon(Icons.Default.Clear, appStrings.secretsScreen.filterClear)
+                }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopBar(
+    sortMode: SortMode,
+    onSortModeChange: (SortMode) -> Unit,
+    filterEnabled: Boolean,
+    onFilterToggle: () -> Unit,
+    onLockVault: () -> Unit,
+    onSettings: () -> Unit,
+) {
+    val screenStrings = appStrings.secretsScreen
+    TopAppBar(
+        title = { Text(appStrings.generic.appName) },
+        actions = {
+            IconButton(
+                onClick = {
+                    val newSortMode = when (sortMode) {
+                        SortMode.Manual -> SortMode.Alphabetic
+                        SortMode.Alphabetic -> SortMode.Manual
+                    }
+                    onSortModeChange(newSortMode)
+                }
+            ) {
+                val alphabeticSort = sortMode == SortMode.Alphabetic
+                Icon(
+                    imageVector = Icons.Filled.SortByAlpha,
+                    contentDescription = screenStrings.sortAlphabetically(alphabeticSort),
+                    tint = if (alphabeticSort) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                )
+            }
+            IconButton(onClick = onFilterToggle) {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = screenStrings.filter(filterEnabled),
+                    tint = if (filterEnabled) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                )
+            }
+            IconButton(onClick = onLockVault) {
+                Icon(Icons.Filled.LockOpen, screenStrings.lockScreen)
+            }
+            IconButton(onClick = onSettings) {
+                Icon(Icons.Filled.Settings, screenStrings.settings)
+            }
+        }
+    )
+}
+
+@Composable
+fun ListRow(
+    totpSecret: TotpSecret,
+    selected: Boolean,
+    hideSecretsFromAccessibility: Boolean,
+    clock: Clock,
+    getTotpCodes: suspend (TotpSecret) -> List<String>,
+    onLongPressSecret: (TotpSecret) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val dots = remember { "\u2022".repeat(totpSecret.digits) }
+    var viewState by remember { mutableStateOf<ListRowViewState>(ListRowViewState.CodeHidden) }
+    var totpCode by remember { mutableStateOf(dots) }
+    var progress by remember { mutableFloatStateOf(0.0f) }
+
+    LaunchedEffect(viewState) {
+        val state = viewState
+        if (state is ListRowViewState.CodeVisible) {
+            try {
+                for (code in state.codes) {
+                    totpCode = code
+                    val now = clock.now()
+                    val deciSecondsIntoPeriod = (now.epochSeconds % totpSecret.period) * 10
+                    val deciSecondsPeriod = totpSecret.period * 10
+                    for (step in deciSecondsIntoPeriod..deciSecondsPeriod) {
+                        progress = 1 - step.toFloat() / deciSecondsPeriod
+                        delay(100)
+                    }
+                }
+            } catch (_: AuthenticationFailedException) {
+                // code remains hidden
+            } finally {
+                viewState = ListRowViewState.CodeHidden
+                totpCode = dots
+                progress = 0.0f
+            }
+        }
+    }
+
+    val backgroundColor = when (selected) {
+        true -> MaterialTheme.colorScheme.surfaceBright
+        false -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = {
+                    scope.launch {
+                        val codes = getTotpCodes(totpSecret)
+                        viewState = ListRowViewState.CodeVisible(codes)
+                    }
+                },
+                onLongClick = { onLongPressSecret(totpSecret) },
+            )
+            .padding(4.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(start = 12.dp)
+                .weight(1.0f)
+        ) {
+            Row {
+                Text(
+                    text = totpSecret.issuer,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = totpSecret.account?.let { "(${it})" } ?: "",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.primaryHint,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            Text(
+                text = totpCode.chunked(3).joinToString("\u202F"),
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .height(35.dp)
+                    .semantics {
+                        isSensitiveData = true
+                        if (hideSecretsFromAccessibility) {
+                            hideFromAccessibility()
+                        }
+                    },
+                color = if (viewState is ListRowViewState.CodeVisible) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.primaryDisabled
+                },
+            )
+        }
+        if (viewState is ListRowViewState.CodeVisible) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .size(48.dp),
+                progress = { progress },
+            )
+        }
+    }
+}
+
+private sealed interface ListRowViewState {
+    object CodeHidden : ListRowViewState
+    class CodeVisible(val codes: List<String>) : ListRowViewState
+}
+
+private sealed interface SheetViewState {
+    object AddSecrets : SheetViewState
+    data class SecretActions(val secret: TotpSecret) : SheetViewState
+}
