@@ -1,6 +1,6 @@
 <resources>
     <!-- Generic strings -->
-    <string name="generic_app_name">Snout</string>
+    <string name="app_name">Snout</string>
     <string name="generic_back">Back</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_continue">Continue</string>

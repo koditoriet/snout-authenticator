@@ -21,7 +21,7 @@ class AppStrings(private val ctx: Context) {
     val viewModel by lazy { ViewModel(ctx) }
 
     class Generic(ctx: Context) {
-        val appName by ctx.s(R.string.generic_app_name)
+        val appName by ctx.s(R.string.app_name)
         val back by ctx.s(R.string.generic_back)
         val cancel by ctx.s(R.string.generic_cancel)
         val continueOn by ctx.s(R.string.generic_continue)
