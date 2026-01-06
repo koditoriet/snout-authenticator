@@ -19,10 +19,13 @@ fun base32Decode(base32: CharArray): ByteArray {
 }
 
 fun isValidBase32(base32: String): Boolean {
+    val base32Array = base32.toCharArray()
     try {
-        base32Decode(base32.toCharArray())
+        base32Decode(base32Array)
         return true
-    } catch (e: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         return false
+    } finally {
+        base32Array.fill('\u0000')
     }
 }

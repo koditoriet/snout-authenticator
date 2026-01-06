@@ -1,7 +1,7 @@
 package se.koditoriet.snout.ui.components
 
-import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -25,11 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import se.koditoriet.snout.ui.primaryHint
 
+private const val TAG = "RequiresPermission"
+
 @Composable
 fun RequiresPermission(
     permission: String,
     permissionsRequiredMessage: String = "",
-    onGranted: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val ctx = LocalContext.current
     var granted by remember {
@@ -40,17 +42,24 @@ fun RequiresPermission(
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-        onResult = { granted = it }
+        onResult = {
+            when (it)  {
+                true -> Log.i(TAG, "Permission granted: $permission")
+                false -> Log.i(TAG, "Permission denied: $permission")
+            }
+            granted = it
+        }
     )
 
     LaunchedEffect(Unit) {
         if (!granted) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
+            Log.i(TAG, "Requesting permission: $permission")
+            permissionLauncher.launch(permission)
         }
     }
 
     if (granted) {
-        onGranted()
+        content()
     } else {
         Surface(
             modifier = Modifier

@@ -50,6 +50,7 @@ import java.util.concurrent.Executors
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 private const val TAG = "QrScanner"
@@ -107,18 +108,18 @@ private fun QrScannerView(
     val cameraManager = LocalContext.current.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     val cameraId = cameraManager.getBackCameraId()
 
-    // Pick the largest available 16:9 resolution
     val availableOutputSizes = cameraManager
         .getCameraCharacteristics(cameraId)
         .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
         .getOutputSizes(ImageFormat.YUV_420_888)
-        .filter { abs((it.width.toFloat() / it.height) - (16f / 9f)) < 0.001 }
+        .filter { it.w.toFloat() / it.h in 1.75f..1.80f }
 
     Log.i(TAG, "Available 16:9 output sizes: ${availableOutputSizes.joinToString(", ")}")
 
+    // Pick the largest available 16:9 resolution that is not _too_ large
     val outputSize = availableOutputSizes
-        .filter { it.width < 1920 }
-        .maxByOrNull { it.width } ?: availableOutputSizes.maxBy { it.width }
+        .filter { it.w < 1920 }
+        .maxByOrNull { it.w } ?: availableOutputSizes.maxBy { it.w }
 
     Log.i(TAG, "Picked output size $outputSize")
 
@@ -129,6 +130,7 @@ private fun QrScannerView(
                 var captureSession: CameraCaptureSession? = null
                 surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+                        Log.d(TAG, "Setting preview buffer size to $outputSize")
                         surface.setDefaultBufferSize(outputSize.width, outputSize.height)
                         val previewSurface = Surface(surfaceTexture)
                         val callback = QrScannerCameraDeviceStateCallback(
@@ -141,6 +143,7 @@ private fun QrScannerView(
 
                         // This entire component is wrapped in a RequiresPermission component which ensures that we
                         // never get here unless we have camera access.
+                        Log.d(TAG, "Opening camera with id $cameraId")
                         @Suppress("MissingPermission")
                         cameraManager.openCamera(cameraId, callback, handler)
                     }
@@ -173,7 +176,9 @@ private fun CameraManager.getBackCameraId(): String = cameraIdList.first {
 
 @Composable
 private fun QrViewfinderOverlay(modifier: Modifier) {
-    Canvas(modifier = modifier.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
+    Canvas(
+        modifier = modifier.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    ) {
         val size = min(size.width, size.height) * 0.65f
         val left = (this.size.width - size) / 2
         val top = (this.size.height - size) / 2
@@ -214,6 +219,7 @@ private class QrScannerCameraDeviceStateCallback(
 
     @OptIn(ExperimentalAtomicApi::class)
     override fun onOpened(device: CameraDevice) {
+        Log.d(TAG, "Camera device opened")
         val qrAlreadyScanned = AtomicBoolean(false)
         cameraImageReader.setOnImageAvailableListener(
             { reader ->
@@ -230,6 +236,7 @@ private class QrScannerCameraDeviceStateCallback(
             handler
         )
 
+        Log.d(TAG, "Creating capture session")
         device.createCaptureSession(
             createCameraSessionConfig(
                 device = device,
@@ -255,6 +262,7 @@ private fun createCameraSessionConfig(
 ): SessionConfiguration {
     val callback = object : CameraCaptureSession.StateCallback() {
         override fun onConfigured(session: CameraCaptureSession) {
+            Log.d(TAG, "Creating capture request with two targets")
             val request = device.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
                 addTarget(previewSurface)
                 addTarget(outputSurface)
@@ -280,3 +288,9 @@ private fun createCameraSessionConfig(
         callback,
     )
 }
+
+private val android.util.Size.w: Int
+    get() = max(width, height)
+
+private val android.util.Size.h: Int
+    get() = min(width, height)
