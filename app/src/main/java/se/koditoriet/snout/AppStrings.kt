@@ -31,6 +31,7 @@ class AppStrings(private val ctx: Context) {
         val keyStorageStrongbox by ctx.s(R.string.generic_key_storage_strongbox)
         val keyStorageTee by ctx.s(R.string.generic_key_storage_tee)
         val keyStorageSoftware by ctx.s(R.string.generic_key_storage_software)
+        val keyStorageUnknown by ctx.s(R.string.generic_key_storage_unknown)
     }
 
     inner class SetupScreen(ctx: Context) {

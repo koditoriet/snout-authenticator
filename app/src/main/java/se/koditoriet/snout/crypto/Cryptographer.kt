@@ -9,6 +9,7 @@ import android.util.Base64
 import java.security.Key
 import java.security.KeyStore
 import java.security.KeyStoreException
+import java.security.ProviderException
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKeyFactory
@@ -37,17 +38,21 @@ class Cryptographer(
         check(key != null) {
             "key '${keyHandle.alias}' does not exist"
         }
-        if (keyHandle.isStrongBoxBacked) {
-            return KeySecurityLevel.StrongBox
-        }
-        val factory = SecretKeyFactory.getInstance(keyHandle.algorithm.secretKeySpecName, "AndroidKeyStore")
-        val keyInfo = factory.getKeySpec(key.secretKey, KeyInfo::class.java) as KeyInfo
-        return when (keyInfo.securityLevel) {
-            KeyProperties.SECURITY_LEVEL_STRONGBOX -> KeySecurityLevel.StrongBox
-            KeyProperties.SECURITY_LEVEL_TRUSTED_ENVIRONMENT -> KeySecurityLevel.TEE
-            KeyProperties.SECURITY_LEVEL_SOFTWARE -> KeySecurityLevel.Software
-            else -> {
-                error("'${keyInfo.securityLevel}' is not a valid security level!")
+        return try {
+            val factory = SecretKeyFactory.getInstance(keyHandle.algorithm.secretKeySpecName, "AndroidKeyStore")
+            val keyInfo = factory.getKeySpec(key.secretKey, KeyInfo::class.java) as KeyInfo
+            when (keyInfo.securityLevel) {
+                KeyProperties.SECURITY_LEVEL_STRONGBOX -> KeySecurityLevel.StrongBox
+                KeyProperties.SECURITY_LEVEL_TRUSTED_ENVIRONMENT -> KeySecurityLevel.TEE
+                KeyProperties.SECURITY_LEVEL_SOFTWARE -> KeySecurityLevel.Software
+                else -> {
+                    error("'${keyInfo.securityLevel}' is not a valid security level!")
+                }
+            }
+        } catch (_: ProviderException) {
+            when (keyHandle.isStrongBoxBacked) {
+                true -> KeySecurityLevel.StrongBox
+                false -> KeySecurityLevel.Unknown
             }
         }
     }
@@ -217,6 +222,7 @@ enum class KeySecurityLevel {
     StrongBox,
     TEE,
     Software,
+    Unknown,
 }
 
 private fun createKeystoreGenerator(algorithm: String): KeyGenerator =

@@ -108,12 +108,13 @@ private val KeySecurityLevel.description: String
         KeySecurityLevel.StrongBox -> appStrings.generic.keyStorageStrongbox
         KeySecurityLevel.TEE -> appStrings.generic.keyStorageTee
         KeySecurityLevel.Software -> appStrings.generic.keyStorageSoftware
+        KeySecurityLevel.Unknown -> appStrings.generic.keyStorageUnknown
     }
 
 private val KeySecurityLevel?.grade: Grade
     get() = when (this) {
         KeySecurityLevel.StrongBox -> Grade.Excellent
         KeySecurityLevel.TEE -> Grade.Good
-        KeySecurityLevel.Software -> Grade.Weak
+        KeySecurityLevel.Software, KeySecurityLevel.Unknown -> Grade.Weak
         null -> Grade.Good
     }

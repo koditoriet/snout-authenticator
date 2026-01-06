@@ -10,6 +10,7 @@
     <string name="generic_key_storage_strongbox">StrongBox</string>
     <string name="generic_key_storage_tee">Trusted Environment</string>
     <string name="generic_key_storage_software">software</string>
+    <string name="generic_key_storage_unknown">unknown storage</string>
 
 
     <!-- Initial setup screen -->
