@@ -85,14 +85,13 @@ fun RestoreBackupScreen(
                 items(wordCount) { index ->
                     SeedWordInput(
                         index = index,
+                        isLastWord = index == wordCount - 1,
                         seedWords = seedWords,
                         onValueChange = { words[index] = it },
                         onNextWord = {
-                            if (index < wordCount - 1) {
-                                scope.launch {
-                                    delay(50)
-                                    focusRequesters[index + 1].requestFocus()
-                                }
+                            scope.launch {
+                                delay(50)
+                                focusRequesters[index + 1].requestFocus()
                             }
                         },
                         focusRequester = focusRequesters[index],
@@ -119,6 +118,7 @@ fun RestoreBackupScreen(
 @Composable
 fun SeedWordInput(
     index: Int,
+    isLastWord: Boolean,
     seedWords: Set<String>,
     onValueChange: (String) -> Unit,
     onNextWord: () -> Unit,
@@ -138,7 +138,7 @@ fun SeedWordInput(
             onValueChange = {
                 value.value = it.lowercase().trim()
                 onValueChange(value.value)
-                if (it.endsWith(" ")) {
+                if (it.endsWith(" ") && !isLastWord) {
                     onNextWord()
                 }
             },
@@ -155,7 +155,7 @@ fun SeedWordInput(
             ),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
-                imeAction = ImeAction.Next,
+                imeAction = if (isLastWord) ImeAction.Done else ImeAction.Next,
                 keyboardType = KeyboardType.Password,
             )
         )
