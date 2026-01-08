@@ -35,7 +35,19 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+            ndk {
+                abiFilters.add("arm64-v8a")
+                debugSymbolLevel = "none"
+                packaging {
+                    jniLibs {
+                        useLegacyPackaging = false
+                    }
+                }
+            }
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
