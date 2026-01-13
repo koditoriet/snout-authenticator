@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -37,12 +39,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.codec.isValidBase32
 import se.koditoriet.snout.ui.components.SecretVisibility.Hidden
 import se.koditoriet.snout.ui.components.SecretVisibility.Visible
 import se.koditoriet.snout.ui.primaryHint
+import se.koditoriet.snout.ui.theme.BUTTON_FONT_SIZE
+import se.koditoriet.snout.ui.theme.INPUT_FIELD_PADDING
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.TotpAlgorithm
 
@@ -60,12 +63,13 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
 
     val fieldModifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp)
+        .padding(INPUT_FIELD_PADDING)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(padding),
+            .padding(padding)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         OutlinedTextField(
@@ -118,7 +122,7 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
                     saveData(metadata)
                 },
             ) {
-                Text(appStrings.generic.save, fontSize = 16.sp)
+                Text(appStrings.generic.save, fontSize = BUTTON_FONT_SIZE)
             }
         }
     }
@@ -145,7 +149,7 @@ fun SecretDataPartialForm(
                 .semantics {
                     liveRegion = LiveRegionMode.Assertive
                 }
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = INPUT_FIELD_PADDING),
             text = screenStrings.currentlyUnusableWithScreenReader,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primaryHint,
