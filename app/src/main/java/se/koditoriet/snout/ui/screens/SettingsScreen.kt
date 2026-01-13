@@ -113,6 +113,7 @@ fun SettingsScreen(
                 .padding(padding)
         ) {
 
+            // Enable backups
             item {
                 SettingSwitchRow(
                     title = screenStrings.enableBackups,
@@ -133,6 +134,7 @@ fun SettingsScreen(
                 }
             }
 
+            // Biometric lock
             item {
                 SettingSwitchRow(
                     title = screenStrings.biometricLock,
@@ -142,6 +144,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Lock on minimize / grace period
             item {
                 SettingSwitchRow(
                     title = screenStrings.lockOnMinimize,
@@ -179,6 +182,7 @@ fun SettingsScreen(
                 }
             }
 
+            // Screen security
             item {
                 SettingSwitchRow(
                     title = screenStrings.screenSecurity,
@@ -188,6 +192,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Hide secrets from screen readers (accessibility tools)
             item {
                 SettingSwitchRow(
                     title = screenStrings.hideSecretsFromScreenReaders,
@@ -197,6 +202,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Enable dev features
             item {
                 SettingSwitchRow(
                     title = screenStrings.enableDeveloperFeatures,
@@ -206,6 +212,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Key storage overview
             item {
                 SettingActionRow(
                     title = screenStrings.keyStorageOverview,
@@ -218,6 +225,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Erase data
             item {
                 SettingActionRow(
                     title = screenStrings.eraseData,
@@ -228,6 +236,7 @@ fun SettingsScreen(
             }
         }
 
+        // Confirmation dialog - erase data
         if (showWipeDialog) {
             ConfirmationDialog(
                 text = screenStrings.eraseDataDialogText,
@@ -240,6 +249,7 @@ fun SettingsScreen(
             )
         }
 
+        // Confirmation dialog - disable backups
         if (showDisableBackupsDialog) {
             ConfirmationDialog(
                 text = screenStrings.enableBackupsDisableDialogText,
@@ -252,6 +262,7 @@ fun SettingsScreen(
             )
         }
 
+        // Overview sheet - security
         val sheet = sheetViewState
         if (sheet != null) {
             BottomSheet(
