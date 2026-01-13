@@ -58,6 +58,12 @@ import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.sheets.SecurityReportSheet
 import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_HEIGHT
 import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_WIDTH
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_PADDING
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
+import se.koditoriet.snout.ui.theme.SETTINGS_CARD_ROW_HORIZONTAL_SPACING
+import se.koditoriet.snout.ui.theme.SETTINGS_CARD_COLUMN_VERTICAL_SPACING
+import se.koditoriet.snout.ui.theme.SETTINGS_CARD_HORIZONTAL_SPACING
+import se.koditoriet.snout.ui.theme.SETTINGS_CARD_VERTICAL_SPACING
 import se.koditoriet.snout.viewmodel.SecurityReport
 import kotlin.time.Clock
 
@@ -292,12 +298,12 @@ fun SettingSwitchRow(
     SettingsCard { padding ->
         Column(
             modifier = Modifier.padding(padding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(SETTINGS_CARD_COLUMN_VERTICAL_SPACING),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(SETTINGS_CARD_ROW_HORIZONTAL_SPACING)
             ) {
                 SettingsInfo(title, description)
                 Switch(
@@ -341,10 +347,10 @@ private fun SettingsCard(content: @Composable ColumnScope.(PaddingValues) -> Uni
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
+            .padding(horizontal = SETTINGS_CARD_HORIZONTAL_SPACING, vertical = SETTINGS_CARD_VERTICAL_SPACING),
+        shape = RoundedCornerShape(ROUNDED_CORNER_SIZE),
     ) {
-        content(PaddingValues(16.dp))
+        content(PaddingValues(ROUNDED_CORNER_PADDING))
     }
 }
 
