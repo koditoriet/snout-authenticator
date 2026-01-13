@@ -56,6 +56,8 @@ import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.sheets.SecurityReportSheet
+import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_HEIGHT
+import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_WIDTH
 import se.koditoriet.snout.viewmodel.SecurityReport
 import kotlin.time.Clock
 
@@ -168,8 +170,8 @@ fun SettingsScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier
-                                .width(110.dp)
-                                .height(64.dp),
+                                .width(GRACE_PERIOD_INPUT_FIELD_WIDTH)
+                                .height(GRACE_PERIOD_INPUT_FIELD_HEIGHT),
                             textStyle = MaterialTheme.typography.bodyMedium,
                             isError = partialValue.value.toIntOrNull()?.let { it < 0 } ?: true,
                         )
