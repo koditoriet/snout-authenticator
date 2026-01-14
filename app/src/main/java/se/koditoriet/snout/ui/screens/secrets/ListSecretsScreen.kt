@@ -55,7 +55,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import se.koditoriet.snout.SortMode
@@ -67,10 +66,12 @@ import se.koditoriet.snout.ui.primaryDisabled
 import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.sheets.AddSecretsSheet
 import se.koditoriet.snout.ui.sheets.SecretActionsSheet
+import se.koditoriet.snout.ui.theme.LIST_ITEM_FONT_SIZE
 import se.koditoriet.snout.ui.theme.PADDING_M
 import se.koditoriet.snout.ui.theme.PADDING_S
 import se.koditoriet.snout.ui.theme.PADDING_XS
 import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
+import se.koditoriet.snout.ui.theme.SECRET_FONT_SIZE
 import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.TotpSecret
@@ -197,7 +198,7 @@ private fun SecretList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp)
+        contentPadding = PaddingValues(PADDING_S)
     ) {
         val filteredSecrets = when (filterQuery.isNotBlank()) {
             true -> {
@@ -383,19 +384,19 @@ fun ListRow(
             Row {
                 Text(
                     text = totpSecret.issuer,
-                    fontSize = 16.sp,
+                    fontSize = LIST_ITEM_FONT_SIZE,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = totpSecret.account?.let { "(${it})" } ?: "",
-                    fontSize = 16.sp,
+                    fontSize = LIST_ITEM_FONT_SIZE,
                     color = MaterialTheme.colorScheme.primaryHint,
                     modifier = Modifier.padding(start = PADDING_S),
                 )
             }
             Text(
                 text = totpCode.chunked(3).joinToString("\u202F"),
-                fontSize = 28.sp,
+                fontSize = SECRET_FONT_SIZE,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
                 modifier = Modifier
