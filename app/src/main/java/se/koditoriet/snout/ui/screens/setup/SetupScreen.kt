@@ -35,7 +35,7 @@ import se.koditoriet.snout.ui.theme.PADDING_L
 import se.koditoriet.snout.ui.theme.PADDING_XL
 import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.ui.theme.SPACING_M
-import se.koditoriet.snout.ui.theme.SPACING_XL
+import se.koditoriet.snout.ui.theme.SPACING_XXL
 
 @Composable
 fun BackupSetupScreen(
@@ -72,7 +72,7 @@ fun BackupSetupScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
 
-                    Spacer(Modifier.height(SPACING_XL))
+                    Spacer(Modifier.height(SPACING_XXL))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardEnable,

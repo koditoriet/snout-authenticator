@@ -29,6 +29,7 @@ import se.koditoriet.snout.ui.theme.PADDING_XL
 import se.koditoriet.snout.ui.theme.PADDING_XXS
 import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.ui.theme.SPACING_S
+import se.koditoriet.snout.ui.theme.SPACING_XL
 import se.koditoriet.snout.ui.theme.SPACING_XS
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +129,7 @@ fun MnemonicWordCard(index: Int, word: String, modifier: Modifier) {
                 "$index.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.width(24.dp),
+                modifier = Modifier.width(SPACING_XL),
             )
             Spacer(Modifier.width(SPACING_XS))
             Text(
