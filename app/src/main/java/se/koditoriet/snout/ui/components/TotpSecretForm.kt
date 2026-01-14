@@ -46,7 +46,7 @@ import se.koditoriet.snout.ui.components.SecretVisibility.Visible
 import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.theme.BUTTON_FONT_SIZE
 import se.koditoriet.snout.ui.theme.INPUT_FIELD_PADDING
-import se.koditoriet.snout.ui.theme.SPACER_L
+import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.TotpAlgorithm
 
@@ -110,7 +110,7 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
             }
         }
 
-        Spacer(Modifier.height(SPACER_L))
+        Spacer(Modifier.height(SPACING_L))
 
         Row(horizontalArrangement = Arrangement.Center, modifier = fieldModifier) {
             Button(

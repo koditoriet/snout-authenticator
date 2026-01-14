@@ -31,9 +31,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import se.koditoriet.snout.appStrings
-import se.koditoriet.snout.ui.theme.SPACER_L
-import se.koditoriet.snout.ui.theme.SPACER_M
-import se.koditoriet.snout.ui.theme.SPACER_XL
+import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.ui.theme.SPACING_M
+import se.koditoriet.snout.ui.theme.SPACING_XL
 
 @Composable
 fun BackupSetupScreen(
@@ -64,13 +64,13 @@ fun BackupSetupScreen(
                         text = screenStrings.enableBackups,
                         style = MaterialTheme.typography.headlineMedium
                     )
-                    Spacer(Modifier.height(SPACER_L))
+                    Spacer(Modifier.height(SPACING_L))
                     Text(
                         text = screenStrings.enableBackupsDescription,
                         style = MaterialTheme.typography.bodyMedium
                     )
 
-                    Spacer(Modifier.height(SPACER_XL))
+                    Spacer(Modifier.height(SPACING_XL))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardEnable,
@@ -79,7 +79,7 @@ fun BackupSetupScreen(
                         onClick = { backupChoice = BackupChoice.EnableBackups }
                     )
 
-                    Spacer(Modifier.height(SPACER_M))
+                    Spacer(Modifier.height(SPACING_M))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardDisable,
@@ -88,7 +88,7 @@ fun BackupSetupScreen(
                         onClick = { backupChoice = BackupChoice.DisableBackups }
                     )
 
-                    Spacer(Modifier.height(SPACER_M))
+                    Spacer(Modifier.height(SPACING_M))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardImport,
@@ -100,7 +100,7 @@ fun BackupSetupScreen(
             }
 
             item {
-                Spacer(Modifier.height(SPACER_M))
+                Spacer(Modifier.height(SPACING_M))
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -147,7 +147,7 @@ private fun BackupChoiceCard(
                 onClick = onClick
             )
 
-            Spacer(Modifier.width(SPACER_M))
+            Spacer(Modifier.width(SPACING_M))
 
             Column {
                 Text(title, style = MaterialTheme.typography.titleMedium)

@@ -18,7 +18,7 @@ import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.KeySecurityLevel
 import se.koditoriet.snout.ui.components.sheet.BottomSheetGlobalHeader
 import se.koditoriet.snout.ui.components.sheet.BottomSheetItem
-import se.koditoriet.snout.ui.theme.SPACER_L
+import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.viewmodel.SecurityReport
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,7 @@ private fun ReportItem(
             contentDescription = grade.description,
             tint = grade.color,
         )
-        Spacer(Modifier.width(SPACER_L))
+        Spacer(Modifier.width(SPACING_L))
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,

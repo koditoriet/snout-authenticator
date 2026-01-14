@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import se.koditoriet.snout.ui.components.sheet.BottomSheetItem
-import se.koditoriet.snout.ui.theme.SPACER_L
+import se.koditoriet.snout.ui.theme.SPACING_L
 
 @Composable
 fun BottomSheetAction(
@@ -22,7 +22,7 @@ fun BottomSheetAction(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
         )
-        Spacer(modifier = Modifier.width(SPACER_L))
+        Spacer(modifier = Modifier.width(SPACING_L))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,

@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.ui.primaryHint
-import se.koditoriet.snout.ui.theme.SPACER_M
+import se.koditoriet.snout.ui.theme.SPACING_M
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +100,7 @@ fun RestoreBackupScreen(
                 }
             }
 
-            Spacer(Modifier.height(SPACER_M))
+            Spacer(Modifier.height(SPACING_M))
 
             Button(
                 onClick = {
