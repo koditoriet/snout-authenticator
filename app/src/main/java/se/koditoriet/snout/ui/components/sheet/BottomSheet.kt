@@ -19,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import se.koditoriet.snout.ui.theme.PADDING_L
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_PADDING
+import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.ui.theme.SPACING_S
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,13 +37,13 @@ fun BottomSheet(
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 4.dp,
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            shape = RoundedCornerShape(topStart = ROUNDED_CORNER_PADDING, topEnd = ROUNDED_CORNER_PADDING)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PADDING_L),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(SPACING_L),
             ) {
                 content(hideSheet)
                 Spacer(Modifier.height(SPACING_S))

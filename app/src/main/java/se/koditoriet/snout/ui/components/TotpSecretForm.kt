@@ -38,7 +38,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.codec.isValidBase32
 import se.koditoriet.snout.ui.components.SecretVisibility.Hidden
@@ -47,6 +46,7 @@ import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.theme.BUTTON_FONT_SIZE
 import se.koditoriet.snout.ui.theme.INPUT_FIELD_PADDING
 import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.ui.theme.SPACING_S
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.TotpAlgorithm
 
@@ -71,7 +71,7 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
             .fillMaxWidth()
             .padding(padding)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(SPACING_S),
     ) {
         OutlinedTextField(
             modifier = fieldModifier,

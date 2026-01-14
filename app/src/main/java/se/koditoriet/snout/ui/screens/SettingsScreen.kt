@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -60,10 +59,10 @@ import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_HEIGHT
 import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_WIDTH
 import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_PADDING
 import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
-import se.koditoriet.snout.ui.theme.SETTINGS_CARD_ROW_HORIZONTAL_SPACING
-import se.koditoriet.snout.ui.theme.SETTINGS_CARD_COLUMN_VERTICAL_SPACING
-import se.koditoriet.snout.ui.theme.SETTINGS_CARD_HORIZONTAL_SPACING
-import se.koditoriet.snout.ui.theme.SETTINGS_CARD_VERTICAL_SPACING
+import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.ui.theme.SPACING_M
+import se.koditoriet.snout.ui.theme.SPACING_S
+import se.koditoriet.snout.ui.theme.SPACING_XS
 import se.koditoriet.snout.viewmodel.SecurityReport
 import kotlin.time.Clock
 
@@ -298,12 +297,12 @@ fun SettingSwitchRow(
     SettingsCard { padding ->
         Column(
             modifier = Modifier.padding(padding),
-            verticalArrangement = Arrangement.spacedBy(SETTINGS_CARD_COLUMN_VERTICAL_SPACING),
+            verticalArrangement = Arrangement.spacedBy(SPACING_M),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(SETTINGS_CARD_ROW_HORIZONTAL_SPACING)
+                horizontalArrangement = Arrangement.spacedBy(SPACING_XS)
             ) {
                 SettingsInfo(title, description)
                 Switch(
@@ -347,7 +346,7 @@ private fun SettingsCard(content: @Composable ColumnScope.(PaddingValues) -> Uni
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = SETTINGS_CARD_HORIZONTAL_SPACING, vertical = SETTINGS_CARD_VERTICAL_SPACING),
+            .padding(horizontal = SPACING_L, vertical = SPACING_S),
         shape = RoundedCornerShape(ROUNDED_CORNER_SIZE),
     ) {
         content(PaddingValues(ROUNDED_CORNER_PADDING))

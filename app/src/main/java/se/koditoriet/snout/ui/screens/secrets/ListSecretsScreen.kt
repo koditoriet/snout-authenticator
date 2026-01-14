@@ -70,6 +70,8 @@ import se.koditoriet.snout.ui.sheets.SecretActionsSheet
 import se.koditoriet.snout.ui.theme.PADDING_M
 import se.koditoriet.snout.ui.theme.PADDING_S
 import se.koditoriet.snout.ui.theme.PADDING_XS
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
+import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.TotpSecret
 import kotlin.time.Clock
@@ -108,7 +110,7 @@ fun ListSecretsScreen(
             )
         },
         floatingActionButton = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(SPACING_L)) {
                 FloatingActionButton(onClick = { sheetViewState = SheetViewState.AddSecrets }) {
                     Icon(Icons.Filled.Add, appStrings.secretsScreen.addSecret)
                 }
@@ -367,7 +369,7 @@ fun ListRow(
                 onLongClick = { onLongPressSecret(totpSecret) },
             )
             .padding(PADDING_XS)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(ROUNDED_CORNER_SIZE))
             .background(backgroundColor)
             .padding(PADDING_M),
         verticalAlignment = Alignment.CenterVertically,

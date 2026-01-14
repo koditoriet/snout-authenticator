@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import se.koditoriet.snout.ui.theme.PADDING_M
 import se.koditoriet.snout.ui.theme.PADDING_S
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
 import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.ui.theme.SPACING_S
 
@@ -28,7 +29,7 @@ fun BottomSheetContextualHeader(
 ) {
     Column {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(ROUNDED_CORNER_SIZE),
             color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 1.dp,
             modifier = Modifier
