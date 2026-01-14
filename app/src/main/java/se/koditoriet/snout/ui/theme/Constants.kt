@@ -6,8 +6,6 @@ import androidx.compose.ui.unit.sp
 // https://www.learnui.design/blog/android-material-design-font-size-guidelines.html
 
 // Generic
-val SECRET_FONT_SIZE = 28.sp
-val LIST_ITEM_FONT_SIZE = 16.sp
 val BUTTON_FONT_SIZE = 14.sp
 val INPUT_FIELD_PADDING = 12.dp
 val ROUNDED_CORNER_SIZE = 12.dp
@@ -28,5 +26,10 @@ val SPACING_L = 16.dp
 val SPACING_XL = 24.dp
 val SPACING_XXL = 32.dp
 
+// List secrets screen
+val SECRET_FONT_SIZE = 28.sp
+val LIST_ITEM_FONT_SIZE = 16.sp
+
+// Settings screen
 val GRACE_PERIOD_INPUT_FIELD_WIDTH = 130.dp // Fits up to 3 digits + hint text
 val GRACE_PERIOD_INPUT_FIELD_HEIGHT = 64.dp
