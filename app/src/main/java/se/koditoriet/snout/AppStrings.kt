@@ -3,7 +3,6 @@ package se.koditoriet.snout
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import kotlin.getValue
 
 class AppStrings(private val ctx: Context) {
     val generic by lazy { Generic(ctx) }
@@ -54,6 +53,8 @@ class AppStrings(private val ctx: Context) {
         val recoveryPhrase by ctx.s(R.string.seed_display_recovery_phrase)
         val writeThisDown by ctx.s(R.string.seed_display_write_this_down)
         val keepThemSafe by ctx.s(R.string.seed_display_keep_them_safe)
+        val printAsQr by ctx.s(R.string.seed_print_qr)
+        val printAsQrWarning by ctx.s(R.string.seed_print_qr_warning)
     }
 
     class SeedInputScreen(ctx: Context) {
