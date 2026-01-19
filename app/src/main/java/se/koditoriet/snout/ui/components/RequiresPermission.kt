@@ -21,9 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import se.koditoriet.snout.ui.primaryHint
+import se.koditoriet.snout.ui.theme.PADDING_L
 
 private const val TAG = "RequiresPermission"
 
@@ -65,7 +65,7 @@ fun RequiresPermission(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
+                .padding(PADDING_L)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(

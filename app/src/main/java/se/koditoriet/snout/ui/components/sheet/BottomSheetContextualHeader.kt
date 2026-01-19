@@ -15,6 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import se.koditoriet.snout.ui.theme.PADDING_M
+import se.koditoriet.snout.ui.theme.PADDING_S
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
+import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.ui.theme.SPACING_S
 
 @Composable
 fun BottomSheetContextualHeader(
@@ -24,23 +29,23 @@ fun BottomSheetContextualHeader(
 ) {
     Column {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(ROUNDED_CORNER_SIZE),
             color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 1.dp,
             modifier = Modifier
-                .padding(horizontal = 12.dp)
+                .padding(horizontal = PADDING_M)
                 .fillMaxWidth()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = PADDING_M, vertical = PADDING_S)
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(SPACING_S))
                 Column {
                     Text(
                         text = heading,
@@ -53,6 +58,6 @@ fun BottomSheetContextualHeader(
                 }
             }
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(SPACING_L))
     }
 }

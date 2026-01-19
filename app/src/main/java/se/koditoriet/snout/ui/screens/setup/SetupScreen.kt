@@ -31,6 +31,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import se.koditoriet.snout.appStrings
+import se.koditoriet.snout.ui.theme.PADDING_L
+import se.koditoriet.snout.ui.theme.PADDING_XL
+import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.ui.theme.SPACING_M
+import se.koditoriet.snout.ui.theme.SPACING_XXL
 
 @Composable
 fun BackupSetupScreen(
@@ -51,7 +56,7 @@ fun BackupSetupScreen(
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
-                .padding(24.dp)
+                .padding(PADDING_XL)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -61,13 +66,13 @@ fun BackupSetupScreen(
                         text = screenStrings.enableBackups,
                         style = MaterialTheme.typography.headlineMedium
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(SPACING_L))
                     Text(
                         text = screenStrings.enableBackupsDescription,
                         style = MaterialTheme.typography.bodyMedium
                     )
 
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.height(SPACING_XXL))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardEnable,
@@ -76,7 +81,7 @@ fun BackupSetupScreen(
                         onClick = { backupChoice = BackupChoice.EnableBackups }
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(SPACING_M))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardDisable,
@@ -85,7 +90,7 @@ fun BackupSetupScreen(
                         onClick = { backupChoice = BackupChoice.DisableBackups }
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(SPACING_M))
 
                     BackupChoiceCard(
                         title = screenStrings.enableBackupsCardImport,
@@ -97,7 +102,7 @@ fun BackupSetupScreen(
             }
 
             item {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(SPACING_M))
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -136,7 +141,7 @@ private fun BackupChoiceCard(
         border = BorderStroke(2.dp, borderColor)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(PADDING_L),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
@@ -144,7 +149,7 @@ private fun BackupChoiceCard(
                 onClick = onClick
             )
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(SPACING_M))
 
             Column {
                 Text(title, style = MaterialTheme.typography.titleMedium)

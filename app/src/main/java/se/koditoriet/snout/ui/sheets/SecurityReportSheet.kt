@@ -2,12 +2,9 @@ package se.koditoriet.snout.ui.sheets
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import se.koditoriet.snout.viewmodel.SecurityReport
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -15,11 +12,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.KeySecurityLevel
 import se.koditoriet.snout.ui.components.sheet.BottomSheetGlobalHeader
 import se.koditoriet.snout.ui.components.sheet.BottomSheetItem
+import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.viewmodel.SecurityReport
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +65,7 @@ private fun ReportItem(
             contentDescription = grade.description,
             tint = grade.color,
         )
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(SPACING_L))
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,

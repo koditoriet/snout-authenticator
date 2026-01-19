@@ -11,12 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import se.koditoriet.snout.ui.theme.PADDING_L
+import se.koditoriet.snout.ui.theme.SPACING_S
 
 @Composable
 fun BottomSheetGlobalHeader(heading: String, details: String? = null) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = PADDING_L),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -25,7 +26,7 @@ fun BottomSheetGlobalHeader(heading: String, details: String? = null) {
             textAlign = TextAlign.Center,
         )
         if (details != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(SPACING_S))
             Text(
                 text = details,
                 style = MaterialTheme.typography.bodyMedium,

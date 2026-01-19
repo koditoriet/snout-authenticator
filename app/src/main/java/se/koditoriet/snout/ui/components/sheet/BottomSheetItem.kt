@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import se.koditoriet.snout.ui.theme.PADDING_XL
+import se.koditoriet.snout.ui.theme.PADDING_XS
 
 
 @Composable
@@ -14,7 +15,7 @@ fun BottomSheetItem(modifier: Modifier = Modifier, content: @Composable () -> Un
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 24.dp),
+            .padding(vertical = PADDING_XS, horizontal = PADDING_XL),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         content()

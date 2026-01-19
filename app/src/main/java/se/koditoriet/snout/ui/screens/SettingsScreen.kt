@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -56,6 +55,14 @@ import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.sheets.SecurityReportSheet
+import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_HEIGHT
+import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_WIDTH
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_PADDING
+import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_SIZE
+import se.koditoriet.snout.ui.theme.SPACING_L
+import se.koditoriet.snout.ui.theme.SPACING_M
+import se.koditoriet.snout.ui.theme.SPACING_S
+import se.koditoriet.snout.ui.theme.SPACING_XS
 import se.koditoriet.snout.viewmodel.SecurityReport
 import kotlin.time.Clock
 
@@ -111,6 +118,7 @@ fun SettingsScreen(
                 .padding(padding)
         ) {
 
+            // Enable backups
             item {
                 SettingSwitchRow(
                     title = screenStrings.enableBackups,
@@ -131,6 +139,7 @@ fun SettingsScreen(
                 }
             }
 
+            // Biometric lock
             item {
                 SettingSwitchRow(
                     title = screenStrings.biometricLock,
@@ -140,6 +149,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Lock on minimize / grace period
             item {
                 SettingSwitchRow(
                     title = screenStrings.lockOnMinimize,
@@ -168,8 +178,8 @@ fun SettingsScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier
-                                .width(110.dp)
-                                .height(64.dp),
+                                .width(GRACE_PERIOD_INPUT_FIELD_WIDTH)
+                                .height(GRACE_PERIOD_INPUT_FIELD_HEIGHT),
                             textStyle = MaterialTheme.typography.bodyMedium,
                             isError = partialValue.value.toIntOrNull()?.let { it < 0 } ?: true,
                         )
@@ -177,6 +187,7 @@ fun SettingsScreen(
                 }
             }
 
+            // Screen security
             item {
                 SettingSwitchRow(
                     title = screenStrings.screenSecurity,
@@ -186,6 +197,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Hide secrets from screen readers (accessibility tools)
             item {
                 SettingSwitchRow(
                     title = screenStrings.hideSecretsFromScreenReaders,
@@ -195,6 +207,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Enable dev features
             item {
                 SettingSwitchRow(
                     title = screenStrings.enableDeveloperFeatures,
@@ -204,6 +217,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Key storage overview
             item {
                 SettingActionRow(
                     title = screenStrings.keyStorageOverview,
@@ -216,6 +230,7 @@ fun SettingsScreen(
                 )
             }
 
+            // Erase data
             item {
                 SettingActionRow(
                     title = screenStrings.eraseData,
@@ -226,6 +241,7 @@ fun SettingsScreen(
             }
         }
 
+        // Confirmation dialog - erase data
         if (showWipeDialog) {
             ConfirmationDialog(
                 text = screenStrings.eraseDataDialogText,
@@ -238,6 +254,7 @@ fun SettingsScreen(
             )
         }
 
+        // Confirmation dialog - disable backups
         if (showDisableBackupsDialog) {
             ConfirmationDialog(
                 text = screenStrings.enableBackupsDisableDialogText,
@@ -250,6 +267,7 @@ fun SettingsScreen(
             )
         }
 
+        // Overview sheet - security
         val sheet = sheetViewState
         if (sheet != null) {
             BottomSheet(
@@ -279,12 +297,12 @@ fun SettingSwitchRow(
     SettingsCard { padding ->
         Column(
             modifier = Modifier.padding(padding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(SPACING_M),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(SPACING_XS)
             ) {
                 SettingsInfo(title, description)
                 Switch(
@@ -328,10 +346,10 @@ private fun SettingsCard(content: @Composable ColumnScope.(PaddingValues) -> Uni
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
+            .padding(horizontal = SPACING_L, vertical = SPACING_S),
+        shape = RoundedCornerShape(ROUNDED_CORNER_SIZE),
     ) {
-        content(PaddingValues(16.dp))
+        content(PaddingValues(ROUNDED_CORNER_PADDING))
     }
 }
 

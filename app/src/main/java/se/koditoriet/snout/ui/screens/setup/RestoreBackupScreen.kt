@@ -36,13 +36,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.ui.components.LoadingSpinner
 import se.koditoriet.snout.ui.primaryHint
+import se.koditoriet.snout.ui.theme.PADDING_XL
+import se.koditoriet.snout.ui.theme.SPACING_M
+import se.koditoriet.snout.ui.theme.SPACING_S
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,14 +80,14 @@ fun RestoreBackupScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(24.dp)
+                .padding(PADDING_XL)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(SPACING_S),
+                horizontalArrangement = Arrangement.spacedBy(SPACING_M),
                 modifier = Modifier.weight(1f)
             ) {
                 items(wordCount) { index ->
@@ -105,7 +107,7 @@ fun RestoreBackupScreen(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(SPACING_M))
 
             Button(
                 onClick = {
