@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import se.koditoriet.snout.appStrings
@@ -216,15 +217,12 @@ private fun recoveryPhraseToBitmap(recoveryPhraseAsString: List<String>): Bitmap
         QRCodeWriter().encode(recoveryPhraseAsString.joinToString("-"), BarcodeFormat.QR_CODE, BACKUP_SEED_QR_CODE_WIDTH, BACKUP_SEED_QR_CODE_HEIGHT)
     val width = bitMatrix.width
     val height = bitMatrix.height
-    val pixels = IntArray(width * height)
+    val bitmap = createBitmap(width, height)
     for (y in 0 until height) {
-        val offset = y * width
         for (x in 0 until width) {
-            pixels[offset + x] = if (bitMatrix.get(x, y)) BitmapColor.BLACK else BitmapColor.WHITE
+            bitmap[x, y] = if (bitMatrix.get(x, y)) BitmapColor.BLACK else BitmapColor.WHITE
         }
     }
 
-    val bitmap = createBitmap(width, height)
-    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
     return bitmap
 }
