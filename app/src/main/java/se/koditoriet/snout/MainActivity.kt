@@ -37,6 +37,7 @@ import se.koditoriet.snout.crypto.wordMap
 import se.koditoriet.snout.ui.ViewState
 import se.koditoriet.snout.ui.ignoreAuthFailure
 import se.koditoriet.snout.ui.onIOThread
+import se.koditoriet.snout.ui.screens.LoadingScreen
 import se.koditoriet.snout.ui.screens.LockedScreen
 import se.koditoriet.snout.ui.screens.SettingsScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByQrScreen
@@ -132,7 +133,10 @@ fun MainActivity.MainScreen() {
     val totpSecrets by viewModel.secrets.collectAsState()
     val vaultState by viewModel.vaultState.collectAsState()
     val config by viewModel.config.collectAsState(Config.default)
+    val showLoadingScreen = remember { mutableStateOf(false) }
     var viewState by remember { mutableStateOf<ViewState>(ViewState.LockedScreen) }
+
+    LoadingScreen(showLoadingScreen)
 
     LaunchedEffect(config.screenSecurityEnabled) {
         if (config.screenSecurityEnabled) {
@@ -210,8 +214,10 @@ fun MainActivity.MainScreen() {
                 RestoreBackupScreen(
                     seedWords = wordMap.keys,
                     onRestore = onIOThread { backupSeed, uri ->
+                        showLoadingScreen.value = true
                         viewModel.restoreVaultFromBackup(backupSeed, uri)
                         viewState = ViewState.ListSecrets
+                        showLoadingScreen.value = false
                     }
                 )
             }

@@ -22,9 +22,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -38,6 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.BackupSeed
+import se.koditoriet.snout.ui.components.LoadingSpinner
 import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.theme.PADDING_XL
 import se.koditoriet.snout.ui.theme.SPACING_M
@@ -50,6 +53,7 @@ fun RestoreBackupScreen(
     seedWords: Set<String>,
     onRestore: (BackupSeed, Uri) -> Unit
 ) {
+    var loading by remember { mutableStateOf(false) }
     val screenStrings = appStrings.seedInputScreen
     val words = remember { MutableList(wordCount) { "" } }
     val focusRequesters = remember { List(wordCount) { FocusRequester() } }
@@ -59,8 +63,10 @@ fun RestoreBackupScreen(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = {
             it?.run {
+                loading = true
                 val backupSeed = BackupSeed.fromMnemonic(words)
                 onRestore(backupSeed, it)
+                loading = false
             }
         }
     )
@@ -109,9 +115,14 @@ fun RestoreBackupScreen(
                         importFileLauncher.launch(arrayOf("application/octet-stream"))
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !loading
             ) {
-                Text(screenStrings.restoreVault)
+                if (loading) {
+                    LoadingSpinner()
+                } else {
+                    Text(screenStrings.restoreVault)
+                }
             }
         }
     }
