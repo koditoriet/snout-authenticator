@@ -62,7 +62,7 @@ fun BackupSeedScreen(
     PrintQrWarningDialog(
         openPrintDialog = openPrintDialog,
         onConfirmation = {
-            printRecoveryPhrase(backupSeed.toMnemonic(), onPrintQr)
+            printSecret(backupSeed.toBase64(), onPrintQr)
             openPrintDialog.value = false
         }
     )
@@ -207,14 +207,14 @@ private fun PrintQrWarningDialog(
     }
 }
 
-private fun printRecoveryPhrase(recoveryPhraseAsString: List<String>, onPrint: (String, Bitmap) -> Unit) {
-    val bitmap = recoveryPhraseToBitmap(recoveryPhraseAsString)
+private fun printSecret(secret: String, onPrint: (String, Bitmap) -> Unit) {
+    val bitmap = secretToBitmap(secret)
     onPrint("PrintRecoveryPhrase", bitmap)
 }
 
-private fun recoveryPhraseToBitmap(recoveryPhraseAsString: List<String>): Bitmap {
+private fun secretToBitmap(secret: String): Bitmap {
     val bitMatrix =
-        QRCodeWriter().encode(recoveryPhraseAsString.joinToString("-"), BarcodeFormat.QR_CODE, BACKUP_SEED_QR_CODE_WIDTH, BACKUP_SEED_QR_CODE_HEIGHT)
+        QRCodeWriter().encode(secret, BarcodeFormat.QR_CODE, BACKUP_SEED_QR_CODE_WIDTH, BACKUP_SEED_QR_CODE_HEIGHT)
     val width = bitMatrix.width
     val height = bitMatrix.height
     val bitmap = createBitmap(width, height)
