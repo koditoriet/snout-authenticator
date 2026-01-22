@@ -101,6 +101,9 @@ dependencies {
     // ZXing for QR scanning
     implementation(libs.com.google.zxing.core)
 
+    // Printing
+    implementation(libs.androidx.print)
+
     // Room
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)

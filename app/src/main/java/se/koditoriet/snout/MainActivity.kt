@@ -25,6 +25,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.print.PrintHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -201,6 +202,7 @@ fun MainActivity.MainScreen() {
                 val seed = remember { BackupSeed.generate() }
                 BackupSeedScreen(
                     backupSeed = seed,
+                    onPrintQr = PrintHelper(this)::printBitmap,
                     onContinue = onIOThread {
                         viewModel.createVault(seed)
                         seed.wipe()

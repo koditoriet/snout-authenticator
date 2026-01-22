@@ -29,6 +29,8 @@
     <string name="seed_display_recovery_phrase">Your Recovery Phrase</string>
     <string name="seed_display_write_this_down">Write down these words in order. They are the only way to recover your backups.</string>
     <string name="seed_display_keep_them_safe">Keep them in a safe place. Do NOT store them on this device. Never share them with anyone.</string>
+    <string name="seed_display_print_qr">Print as QR code</string>
+    <string name="seed_display_print_qr_warning">Please do not save the QR code as a PDF, as this is unsecure.</string>
 
 
     <!-- Input backup seed screen -->
