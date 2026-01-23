@@ -24,6 +24,10 @@ val SPACING_L = 16.dp
 val SPACING_XL = 24.dp
 val SPACING_XXL = 32.dp
 
+// Backup seed screen
+val BACKUP_SEED_QR_CODE_WIDTH = 200
+val BACKUP_SEED_QR_CODE_HEIGHT = 200
+
 // List secrets screen
 val SECRET_FONT_SIZE = 28.sp
 val LIST_ITEM_FONT_SIZE = 16.sp
