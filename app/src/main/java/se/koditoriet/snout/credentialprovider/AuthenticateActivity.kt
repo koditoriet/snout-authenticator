@@ -1,6 +1,5 @@
 package se.koditoriet.snout.credentialprovider
 
-import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -51,7 +50,7 @@ class AuthenticateActivity : FragmentActivity() {
                 rpId = passkey.rpId,
                 credentialId = passkey.credentialId,
                 userId = passkey.userId,
-                flags = setOf(AuthDataFlag.UP, AuthDataFlag.BE, AuthDataFlag.BS),
+                flags = AuthDataFlag.defaultAuthFlags,
                 clientDataHash = publicKeyRequest.clientDataHash!!,
             )
 

@@ -158,22 +158,33 @@ fun appInfoToOrigin(callingAppInfo: CallingAppInfo): String {
 @JvmInline
 value class AuthDataFlag(val flag: Int) {
     companion object {
-        /// User Presence
+        /**
+         * User Presence
+         */
         val UP: AuthDataFlag = AuthDataFlag(0x01)
 
-        /// User Verification
+        /**
+         * User Verification
+         */
         val UV: AuthDataFlag = AuthDataFlag(0x04)
 
-        /// Backup Eligibility
+        /**
+         * Backup Eligibility
+         */
         val BE: AuthDataFlag = AuthDataFlag(0x08)
 
-        /// Backup Status
+        /**
+         * Backup Status
+         */
         val BS: AuthDataFlag = AuthDataFlag(0x10)
 
-        /// Attestation data attached (this is always set automatically)
+        /**
+         * Attestation data attached (this is always set automatically for credential creation)
+         */
         val AT: AuthDataFlag = AuthDataFlag(0x40)
 
-        val defaultFlags: Set<AuthDataFlag> = setOf(UP, UV)
+        val defaultCreateFlags: Set<AuthDataFlag> = setOf(UP, UV, BE)
+        val defaultAuthFlags: Set<AuthDataFlag> = setOf(UP, UV, BE)
     }
 }
 
