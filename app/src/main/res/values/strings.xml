@@ -1,6 +1,7 @@
 <resources>
     <!-- Generic strings -->
     <string name="app_name">Snout</string>
+    <string name="generic_ok">OK</string>
     <string name="generic_back">Back</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_continue">Continue</string>
@@ -144,8 +145,6 @@
 
 
     <!-- View model -->
-    <string name="view_model_auth_create_passkey">Create Passkey</string>
-    <string name="view_model_auth_create_passkey_subtitle">Confirm your identity to create passkey.</string>
     <string name="view_model_auth_use_passkey">Sign In</string>
     <string name="view_model_auth_use_passkey_subtitle">Confirm your identity to sign in.</string>
     <string name="view_model_auth_unlock_vault">Unlock Vault</string>

@@ -89,7 +89,7 @@ fun createPendingIntent(context: Context, cls: Class<*>, extra: Bundle? = null):
         )
     }
 
-private fun <T> JSONArray.map(transform: (JSONObject) -> T): List<T> {
+fun <T> JSONArray.map(transform: (JSONObject) -> T): List<T> {
     val results = mutableListOf<T>()
     for (i in 0 ..< length()) {
         results.add(transform(getJSONObject(i)))

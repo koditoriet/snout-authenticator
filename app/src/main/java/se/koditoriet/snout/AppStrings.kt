@@ -24,6 +24,7 @@ class AppStrings(private val ctx: Context) {
 
     class Generic(ctx: Context) {
         val appName by ctx.s(R.string.app_name)
+        val ok by ctx.s(R.string.generic_ok)
         val back by ctx.s(R.string.generic_back)
         val cancel by ctx.s(R.string.generic_cancel)
         val continueOn by ctx.s(R.string.generic_continue)
@@ -206,9 +207,6 @@ class AppStrings(private val ctx: Context) {
     }
 
     class ViewModel(private val ctx: Context) {
-        val authCreatePasskey by ctx.s(R.string.view_model_auth_create_passkey)
-        val authCreatePasskeySubtitle by ctx.s(R.string.view_model_auth_create_passkey_subtitle)
-
         val authUsePasskey by ctx.s(R.string.view_model_auth_use_passkey)
         val authUsePasskeySubtitle by ctx.s(R.string.view_model_auth_use_passkey_subtitle)
 
