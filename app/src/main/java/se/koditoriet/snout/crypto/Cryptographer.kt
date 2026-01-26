@@ -27,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec
 import javax.security.auth.DestroyFailedException
 
 
-private const val KEY_AUTHENTICATION_LIFETIME: Int = 1
+private const val KEY_AUTHENTICATION_LIFETIME: Int = 5
 private const val TAG = "Cryptographer"
 
 class Cryptographer(
@@ -339,7 +339,7 @@ private fun <T : KeyAlgorithm> KeyStore.importKey(
                     TAG,
                     "Key ${keyHandle.alias} is symmetric; setting auth timeout to $KEY_AUTHENTICATION_LIFETIME",
                 )
-                1
+                KEY_AUTHENTICATION_LIFETIME
             } else {
                 Log.i(
                     TAG,
