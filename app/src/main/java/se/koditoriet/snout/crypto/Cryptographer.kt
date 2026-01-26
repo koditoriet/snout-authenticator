@@ -5,18 +5,7 @@ import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProtection
 import android.util.Base64
 import android.util.Log
-import org.bouncycastle.asn1.x500.X500Name
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
-import org.bouncycastle.cert.X509v3CertificateBuilder
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
-import org.bouncycastle.crypto.util.PrivateKeyFactory
-import org.bouncycastle.jce.ECNamedCurveTable
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.jce.spec.ECPublicKeySpec
-import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder
-import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder
-import org.bouncycastle.operator.bc.BcECContentSignerBuilder
-import java.math.BigInteger
+import java.io.ByteArrayInputStream
 import java.security.Key
 import java.security.KeyFactory
 import java.security.KeyPair
@@ -27,11 +16,11 @@ import java.security.PrivateKey
 import java.security.ProviderException
 import java.security.SecureRandom
 import java.security.Signature
+import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
-import java.util.Calendar
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.SecretKeySpec
@@ -307,23 +296,14 @@ private sealed interface KeyEntry {
         fun create(keyHandle: KeyHandle<ECAlgorithm>, keyPair: KeyPair): KeyEntry =
             create(keyHandle, keyPair.private as ECPrivateKey)
 
-        // Source - https://stackoverflow.com/a
-        // Posted by markw, modified by community. See post 'Timeline' for change history
-        // Retrieved 2026-01-19, License - CC BY-SA 4.0
         fun create(keyHandle: KeyHandle<ECAlgorithm>, privKey: ECPrivateKey): KeyEntry {
-            Log.d(TAG, "Reconstructing public key from private key '${keyHandle.alias}'")
-            val keyFactory = KeyFactory.getInstance(keyHandle.algorithm.secretKeySpecName, bouncyCastleProvider)
-            val ecSpec = ECNamedCurveTable.getParameterSpec(keyHandle.algorithm.curve)
-            val q = ecSpec.g.multiply(privKey.s)
-            val pubSpec = ECPublicKeySpec(q, ecSpec)
-            val publicKey = keyFactory.generatePublic(pubSpec) as ECPublicKey
-            val keyPair = KeyPair(publicKey, privKey)
-            val cert = generateSelfSignedCertificate(keyHandle, keyPair)
-            return Asymmetric(KeyStore.PrivateKeyEntry(privKey, arrayOf(cert)))
-        }
-
-        private val bouncyCastleProvider by lazy {
-            BouncyCastleProvider()
+            // We never use the certificate, so we just use a static, pre-generated dummy certificate
+            // to make keystore happy.
+            val entry = KeyStore.PrivateKeyEntry(
+                privKey,
+                arrayOf(dummyCertificate)
+            )
+            return Asymmetric(entry)
         }
     }
 }
@@ -333,36 +313,6 @@ private fun KeyStore.setEntry(keyHandle: KeyHandle<*>, entry: KeyEntry, protPara
         is KeyEntry.Symmetric -> { setEntry(keyHandle.alias, entry.entry, protParam) }
         is KeyEntry.Asymmetric -> { setEntry(keyHandle.alias, entry.entry, protParam) }
     }
-}
-
-// Adapted from https://stackoverflow.com/a/59182063
-// Posted by Tolga Okur, modified by community. See post 'Timeline' for change history
-// Retrieved 2026-01-17, License - CC BY-SA 4.0
-private fun generateSelfSignedCertificate(keyHandle: KeyHandle<ECAlgorithm>, keyPair: KeyPair): X509Certificate {
-    Log.d(TAG, "Generating self-signed dummy cert for '${keyHandle.alias}'")
-    val sigAlgId = DefaultSignatureAlgorithmIdentifierFinder().find(keyHandle.algorithm.algorithmName)
-    val digAlgId = DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId)
-    val keyParam = PrivateKeyFactory.createKey(keyPair.private.encoded)
-    val spki = SubjectPublicKeyInfo.getInstance(keyPair.public.encoded)
-    val signer = BcECContentSignerBuilder(sigAlgId, digAlgId).build(keyParam)
-    val issuer = X500Name("CN=Snout Authenticator")
-    val subject = X500Name("CN=Passkey")
-    val serial = BigInteger.valueOf(1)
-    val notBefore = Calendar.getInstance()
-    val notAfter = Calendar.getInstance()
-    notAfter.add(Calendar.YEAR, 1000)
-
-    val v3CertGen = X509v3CertificateBuilder(
-        issuer,
-        serial,
-        notBefore.getTime(),
-        notAfter.getTime(),
-        subject,
-        spki
-    )
-    val certificateHolder = v3CertGen.build(signer)
-
-    return JcaX509CertificateConverter().getCertificate(certificateHolder)
 }
 
 private fun <T : KeyAlgorithm> KeyStore.importKey(
@@ -422,4 +372,22 @@ private fun <T : KeyAlgorithm> KeyStore.importKey(
         )
         return updatedKeyHandle
     }
+}
+
+// Generated using the following command line:
+// openssl req -new -x509 -key dummy.key -out dummy.crt -days 3650 -subj "/CN=dummy"
+val dummyCertificate: X509Certificate by lazy {
+    val certBase64 = """
+        MIIBdDCCARugAwIBAgIUTpBIKgyrQBlsaNIisMLiBc483QgwCgYIKoZIzj0EAwIwEDEOMAwGA1UE
+        AwwFZHVtbXkwHhcNMjYwMTI2MDgwMTU0WhcNMzYwMTI0MDgwMTU0WjAQMQ4wDAYDVQQDDAVkdW1t
+        eTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKGmqnkuavcn42W1ekMt3TQFeXO4nCfaZL+m7lJy
+        SgRH2QHgkHLXuU8x23s1xzMexjtN6ipMJezOZvqXEbnMliOjUzBRMB0GA1UdDgQWBBSpLEsmrTok
+        y/gFxGr6QTkcRgox7DAfBgNVHSMEGDAWgBSpLEsmrToky/gFxGr6QTkcRgox7DAPBgNVHRMBAf8E
+        BTADAQH/MAoGCCqGSM49BAMCA0cAMEQCIFORWgmTvgjWmS7sQRCiHIrLIIgxhfZGgYNpwOnfziDE
+        AiBDTwzb9RoG5vkFa7VA+pNPIRGg1JKlkuOQVPeqJBTduw==
+    """.trimIndent()
+
+    val certBytes = Base64.decode(certBase64, Base64.DEFAULT)
+    val cf = CertificateFactory.getInstance("X.509")
+    cf.generateCertificate(ByteArrayInputStream(certBytes)) as X509Certificate
 }

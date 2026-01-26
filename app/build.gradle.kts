@@ -92,9 +92,6 @@ dependencies {
     // CBOR
     implementation(libs.com.upokecenter.cbor)
 
-    // Bouncy Castle
-    implementation(libs.org.bouncycastle.bcpkix.jdk15to18)
-
     // kotlinx-datetime
     implementation(libs.org.jetbrains.kotlinx.datetime)
 
