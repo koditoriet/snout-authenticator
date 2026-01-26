@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +17,7 @@ import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CreatePublicKeyCredentialResponse
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.first
 import org.json.JSONObject
 import se.koditoriet.snout.BiometricPromptAuthenticator
@@ -31,13 +31,10 @@ import se.koditoriet.snout.ui.screens.EmptyScreen
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.viewmodel.SnoutViewModel
-import kotlin.getValue
 
 private val TAG = "CreatePasskeyActivity"
 
 class CreatePasskeyActivity : FragmentActivity() {
-    private val viewModel: SnoutViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val screenStrings = appStrings.createPasskeyScreen
@@ -45,21 +42,27 @@ class CreatePasskeyActivity : FragmentActivity() {
         enableEdgeToEdge()
         setContent {
             var passkeyAlreadyExists by remember { mutableStateOf(false) }
+            val viewModel = viewModel<SnoutViewModel>()
+
             LaunchedEffect(Unit) {
                 try {
-                    val response = createPasskey()
-                    if (response != null) {
-                        Log.i(
-                            TAG,
-                            "Created passkey with credential id ${response.credentialId}" +
-                                    " for RP ${response.rpId} at origin ${response.origin}"
-                        )
-                        finishWithResponse(response)
-                    } else {
-                        passkeyAlreadyExists = true
-                    }
+                    val authFactory = BiometricPromptAuthenticator.Factory(this@CreatePasskeyActivity)
+                    viewModel.unlockVault(authFactory)
                 } catch (_: AuthenticationFailedException) {
                     finishWithResponse(null)
+                    return@LaunchedEffect
+                }
+
+                val response = createPasskey(viewModel)
+                if (response != null) {
+                    Log.i(
+                        TAG,
+                        "Created passkey with credential id ${response.credentialId}" +
+                                " for RP ${response.rpId} at origin ${response.origin}"
+                    )
+                    finishWithResponse(response)
+                } else {
+                    passkeyAlreadyExists = true
                 }
             }
 
@@ -77,7 +80,7 @@ class CreatePasskeyActivity : FragmentActivity() {
         }
     }
 
-    private suspend fun createPasskey(): WebAuthnCreateResponse? {
+    private suspend fun createPasskey(viewModel: SnoutViewModel): WebAuthnCreateResponse? {
         val request = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent)!!
         val actualRequest = request.callingRequest as CreatePublicKeyCredentialRequest
         val requestOptions = JSONObject(actualRequest.requestJson)
@@ -103,9 +106,6 @@ class CreatePasskeyActivity : FragmentActivity() {
 
         val rpId = requestOptions.getJSONObject("rp").getString("id")
         val user = requestOptions.getJSONObject("user")
-
-        val authFactory = BiometricPromptAuthenticator.Factory(this@CreatePasskeyActivity)
-        viewModel.unlockVault(authFactory)
 
         val (credentialId, pubkey) = viewModel.addPasskey(
             rpId = rpId,
