@@ -27,12 +27,12 @@ suspend fun createBeginGetCredentialResponse(
     request: BeginGetCredentialRequest,
 ): BeginGetCredentialResponse {
     Log.i(TAG, "Fetching passkeys from vault")
-    val credentialEntries = request.beginGetCredentialOptions.map {
+    val credentialEntries = request.beginGetCredentialOptions.flatMap {
         when (it) {
             is BeginGetPublicKeyCredentialOption -> getPasskeys(vault, context, it)
             else -> emptyList()
         }
-    }.flatMap { it }
+    }
     Log.i(TAG, "Presenting ${credentialEntries.size} passkeys")
     return BeginGetCredentialResponse(credentialEntries)
 }
