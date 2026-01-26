@@ -188,7 +188,7 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun deleteTotpSecret(id: TotpSecret.Id) = vault.withLock {
-        Log.d(TAG, "Deleting TOTP secret with id ${id}")
+        Log.d(TAG, "Deleting TOTP secret with id $id")
         deleteSecret(id)
     }
 

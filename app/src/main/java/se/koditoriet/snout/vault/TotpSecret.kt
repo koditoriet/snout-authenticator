@@ -44,7 +44,7 @@ data class TotpSecret(
         }
 
         companion object {
-            val None: Id = Id(-1)
+            val None: Id = Id(0)
         }
     }
 }
