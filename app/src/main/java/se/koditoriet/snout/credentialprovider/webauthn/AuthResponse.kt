@@ -1,6 +1,7 @@
 package se.koditoriet.snout.credentialprovider.webauthn
 
-import org.json.JSONObject
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import se.koditoriet.snout.codec.Base64Url
 import se.koditoriet.snout.codec.Base64Url.Companion.toBase64Url
 import java.security.MessageDigest
@@ -38,27 +39,45 @@ class SignedAuthResponse(
     val userId: Base64Url?,
     val credentialId: Base64Url,
 ) {
-    val response: JSONObject by lazy {
-        JSONObject().apply {
-            put("clientDataJSON", "dummy value; Android replaces it anyway")
-            put("authenticatorData", authenticatorData.string)
-            put("signature", signature.string)
-            if (userId != null) {
-                put("userHandle", userId.string)
-            }
-        }
+    val response by lazy {
+        Response(
+            clientDataJSON = "dummy value; Android replaces it anyway",
+            authenticatorData = authenticatorData.string,
+            signature = signature.string,
+            userHandle = userId?.string,
+        )
     }
 
-    val credential: JSONObject by lazy {
-        JSONObject().apply {
-            put("type", "public-key")
-            put("id", credentialId.string)
-            put("rawId", credentialId.string)
-            put("response", response)
-            put("clientExtensionResults", JSONObject())
-            put("authenticatorAttachment", "platform")
-        }
+    val credential by lazy {
+        Credential(
+            type = "public-key",
+            id = credentialId.string,
+            rawId = credentialId.string,
+            response = response,
+            clientExtensionResults = emptyMap(),
+            authenticatorAttachment = "platform",
+        )
     }
 
-    val json: String by lazy { credential.toString() }
+    @Serializable
+    class Response(
+        val authenticatorData: String,
+        val signature: String,
+        val userHandle: String?,
+        val clientDataJSON: String,
+    )
+
+    @Serializable
+    class Credential(
+        val type: String,
+        val id: String,
+        val rawId: String,
+        val response: Response,
+        val clientExtensionResults: Map<String, String>,
+        val authenticatorAttachment: String,
+    )
+
+    val json: String by lazy {
+        Json.encodeToString(credential)
+    }
 }

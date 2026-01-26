@@ -10,9 +10,9 @@ import androidx.credentials.provider.BeginGetCredentialResponse
 import androidx.credentials.provider.BeginGetPublicKeyCredentialOption
 import androidx.credentials.provider.CredentialEntry
 import androidx.credentials.provider.PublicKeyCredentialEntry
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.Serializable
 import se.koditoriet.snout.credentialprovider.ui.AuthenticateActivity
+import se.koditoriet.snout.credentialprovider.webauthn.AuthRequest
 import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.vault.Vault
 import kotlin.random.Random
@@ -43,19 +43,18 @@ private suspend fun getPasskeys(
     option: BeginGetPublicKeyCredentialOption,
 ): List<CredentialEntry> {
     Log.i(TAG, "Listing eligible passkeys")
-    val request = JSONObject(option.requestJson)
-    val allowedCredentials = request.optJSONArray("allowedCredentials")?.map {
-        CredentialId.fromString(it.getString("id"))
-    }
-    if (allowedCredentials != null) {
+    val request = AuthRequest.fromJSON(option.requestJson)
+    val allowedCredentials = request.allowCredentials.map { CredentialId(it.id) }
+
+    if (allowedCredentials.isNotEmpty()) {
         val allowed = allowedCredentials.joinToString(", ") { it.toString() }
         Log.i(TAG, "RP lists the following credentials as allowed: $allowed")
     } else {
         Log.i(TAG, "RP did not specify allowedCredentials")
     }
 
-    return vault.getPasskeys(request["rpId"] as String).flatMap { passkey ->
-        if (allowedCredentials?.contains(passkey.credentialId) ?: true) {
+    return vault.getPasskeys(request.rpId).flatMap { passkey ->
+        if (allowedCredentials.isEmpty() || allowedCredentials.contains(passkey.credentialId)) {
             val data = Bundle().apply { putString(CREDENTIAL_ID, passkey.credentialId.string) }
             listOf(
                 PublicKeyCredentialEntry(
@@ -87,11 +86,3 @@ fun createPendingIntent(context: Context, cls: Class<*>, extra: Bundle? = null):
             PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
     }
-
-fun <T> JSONArray.map(transform: (JSONObject) -> T): List<T> {
-    val results = mutableListOf<T>()
-    for (i in 0 ..< length()) {
-        results.add(transform(getJSONObject(i)))
-    }
-    return results
-}

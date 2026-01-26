@@ -3,8 +3,8 @@ package se.koditoriet.snout.credentialprovider.webauthn
 import androidx.credentials.provider.CallingAppInfo
 import com.upokecenter.cbor.CBOREncodeOptions
 import com.upokecenter.cbor.CBORObject
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import se.koditoriet.snout.codec.Base64Url.Companion.toBase64Url
 import se.koditoriet.snout.credentialprovider.appInfoToOrigin
 import java.math.BigInteger
@@ -57,31 +57,53 @@ class CreateResponse(
         }.EncodeToBytes(CBOREncodeOptions.DefaultCtap2Canonical)
     }
 
-    val response: JSONObject by lazy {
-        JSONObject().apply {
-            put("transports", JSONArray(listOf("internal", "hybrid")))
-            put("origin", origin)
-            put("androidPackageName", callingAppInfo.packageName)
-            put("publicKeyAlgorithm", -7)
-            put("publicKey", publicKey.encoded.toBase64Url().string)
-            put("authenticatorData", authenticatorData.toBase64Url().string)
-            put("attestationObject", attestationObject.toBase64Url().string)
-        }
+    val response by lazy {
+        Response(
+            transports = listOf("internal"),
+            origin = origin,
+            androidPackageName = callingAppInfo.packageName,
+            publicKeyAlgorithm = -7,
+            publicKey = publicKey.encoded.toBase64Url().string,
+            authenticatorData = authenticatorData.toBase64Url().string,
+            attestationObject = attestationObject.toBase64Url().string,
+        )
     }
 
-    val credential: JSONObject by lazy {
-        JSONObject().apply {
-            put("type", "public-key")
-            put("id", credentialId.toBase64Url().string)
-            put("rawId", credentialId.toBase64Url().string)
-            put("response", response)
-            put("authenticatorAttachment", "platform")
-            put("publicKeyAlgorithm", -7)
-            put("clientExtensionResults", JSONObject())
-        }
+    val credential by lazy {
+        Credential(
+            type = "public-key",
+            id = credentialId.toBase64Url().string,
+            rawId = credentialId.toBase64Url().string,
+            response = response,
+            authenticatorAttachment = "platform",
+            publicKeyAlgorithm = -7,
+            clientExtensionResults = emptyMap(),
+        )
     }
 
-    val json: String by lazy { credential.toString() }
+    @Serializable
+    class Response(
+        val transports: List<String>,
+        val origin: String,
+        val androidPackageName: String,
+        val publicKeyAlgorithm: Int,
+        val publicKey: String,
+        val authenticatorData: String,
+        val attestationObject: String,
+    )
+
+    @Serializable
+    class Credential(
+        val type: String,
+        val id: String,
+        val rawId: String,
+        val response: Response,
+        val authenticatorAttachment: String,
+        val publicKeyAlgorithm: Int,
+        val clientExtensionResults: Map<String, String>,
+    )
+
+    val json: String by lazy { Json.encodeToString(credential) }
 }
 
 private fun toUnsignedFixedLength(

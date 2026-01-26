@@ -11,9 +11,9 @@ import se.koditoriet.snout.codec.Base64Url
 class AuthRequest(
     val challenge: Base64Url,
     val rpId: String,
-    val allowCredentials: List<CredentialDescriptor>,
     val userVerification: String,
     val timeout: Int,
+    val allowCredentials: List<CredentialDescriptor> = emptyList(),
 ) {
     @Serializable
     class CredentialDescriptor(
