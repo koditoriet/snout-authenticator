@@ -13,14 +13,18 @@ class AppStrings(private val ctx: Context) {
     val secretsScreen by lazy { SecretsScreen(ctx) }
     val editScreen by lazy { EditScreen(ctx) }
     val addSecretScreens by lazy { AddSecretScreens(ctx) }
+    val managePasskeysScreen by lazy { ManagePasskeysScreen(ctx) }
     val settingsScreen by lazy { SettingsScreen(ctx) }
 
     val totpSecretForm by lazy { TotpSecretForm(ctx) }
 
     val viewModel by lazy { ViewModel(ctx) }
 
+    val credentialProvider by lazy { CredentialProvider(ctx) }
+
     class Generic(ctx: Context) {
         val appName by ctx.s(R.string.app_name)
+        val ok by ctx.s(R.string.generic_ok)
         val back by ctx.s(R.string.generic_back)
         val cancel by ctx.s(R.string.generic_cancel)
         val continueOn by ctx.s(R.string.generic_continue)
@@ -104,8 +108,21 @@ class AppStrings(private val ctx: Context) {
         val tapToUnlock by ctx.s(R.string.locked_tap_to_unlock)
     }
 
+    class AuthenticateWithPasskeyScreen(ctx: Context) {
+        val passkeyAlreadyExists by ctx.s(R.string.credential_provider_passkey_already_exists)
+        val passkeyAlreadyExistsExplanation by ctx.s(R.string.credential_provider_passkey_already_exists_explanation)
+    }
+
+    class ManagePasskeysScreen(ctx: Context) {
+        val heading by ctx.s(R.string.manage_passkeys_heading)
+        val permanentlyDeletePasskey by ctx.s(R.string.manage_passkeys_permanently_delete_passkey)
+    }
+
     class SettingsScreen(private val ctx: Context) {
         val heading by ctx.s(R.string.settings_heading)
+
+        val managePasskeys by ctx.s(R.string.settings_manage_passkeys)
+        val managePasskeysDescription by ctx.s(R.string.settings_manage_passkeys_description)
 
         val enableBackups by ctx.s(R.string.settings_enable_backups)
         val enableBackupsDescription by ctx.s(R.string.settings_enable_backups_description)
@@ -163,6 +180,18 @@ class AppStrings(private val ctx: Context) {
                 totalSecrets,
                 storageClass,
             )
+        fun keyStorageOverviewDescriptionSheetPasskeyGroupGrade(
+            groupSize: Int,
+            totalPasskeys: Int,
+            storageClass: String,
+        ) =
+            ctx.resources.getQuantityString(
+                R.plurals.settings_key_storage_overview_sheet_passkey_group_grade,
+                groupSize,
+                groupSize,
+                totalPasskeys,
+                storageClass,
+            )
 
         val eraseData by ctx.s(R.string.settings_erase_data)
         val eraseDataDescription by ctx.s(R.string.settings_erase_data_description)
@@ -183,17 +212,14 @@ class AppStrings(private val ctx: Context) {
     }
 
     class ViewModel(private val ctx: Context) {
-        val authCreateVault by ctx.s(R.string.view_model_auth_create_vault)
-        val authCreateVaultSubtitle by ctx.s(R.string.view_model_auth_create_vault_subtitle)
+        val authUsePasskey by ctx.s(R.string.view_model_auth_use_passkey)
+        val authUsePasskeySubtitle by ctx.s(R.string.view_model_auth_use_passkey_subtitle)
 
         val authUnlockVault by ctx.s(R.string.view_model_auth_unlock_vault)
         val authUnlockVaultSubtitle by ctx.s(R.string.view_model_auth_unlock_vault_subtitle)
 
         val authRevealCode by ctx.s(R.string.view_model_auth_reveal_code)
         val authRevealCodeSubtitle by ctx.s(R.string.view_model_auth_reveal_code_subtitle)
-
-        val authDefaultReason by ctx.s(R.string.view_model_auth_default_reason)
-        val authDefaultSubtitle by ctx.s(R.string.view_model_auth_default_subtitle)
 
         fun authToggleBioprompt(active: Boolean) = when (active) {
             true -> R.string.view_model_auth_vault_bioprompt_enable
@@ -204,6 +230,15 @@ class AppStrings(private val ctx: Context) {
             true -> R.string.view_model_auth_vault_bioprompt_enable_subtitle
             false -> R.string.view_model_auth_vault_bioprompt_disable_subtitle
         }.let { ctx.getString(it) }
+    }
+
+    class CredentialProvider(private val ctx: Context) {
+        val authenticationActionTitle by ctx.s(R.string.credential_provider_authentication_action_title)
+        val passkeyAlreadyExists by ctx.s(R.string.credential_provider_passkey_already_exists)
+        val passkeyAlreadyExistsExplanation by ctx.s(R.string.credential_provider_passkey_already_exists_explanation)
+        val unableToEstablishTrust by ctx.s(R.string.credential_provider_unable_to_establish_trust)
+        val unableToEstablishTrustExplanation by ctx.s(R.string.credential_provider_unable_to_establish_trust_explanation)
+
     }
 }
 

@@ -2,6 +2,8 @@ package se.koditoriet.snout.crypto
 
 import android.util.Base64
 import java.security.Key
+import java.security.PrivateKey
+import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
@@ -19,14 +21,29 @@ interface HmacContext {
     }
 }
 
+interface SignatureContext {
+    fun sign(data: ByteArray): ByteArray
+
+    companion object {
+        fun create(privateKey: PrivateKey, algorithm: ECAlgorithm): SignatureContext =
+            Signature.getInstance(algorithm.algorithmName).run {
+                initSign(privateKey)
+                SignatureContextImpl(this)
+            }
+
+        fun create(sig: Signature): SignatureContext =
+            SignatureContextImpl(sig)
+    }
+}
+
 interface EncryptionContext {
     fun encrypt(data: ByteArray): EncryptedData
 
     companion object {
-        fun create(key: Key, algorithm: SymmetricAlgorithm): EncryptionContext =
+        fun create(key: Key, algorithm: EncryptionAlgorithm): EncryptionContext =
             SymmetricContextImpl(key, algorithm)
 
-        fun create(key: ByteArray, algorithm: SymmetricAlgorithm): EncryptionContext =
+        fun create(key: ByteArray, algorithm: EncryptionAlgorithm): EncryptionContext =
             SecretKeySpec(key, algorithm.algorithmName).run { SymmetricContextImpl(this, algorithm) }
     }
 }
@@ -35,10 +52,10 @@ interface DecryptionContext {
     fun decrypt(data: EncryptedData): ByteArray
 
     companion object {
-        fun create(key: Key, algorithm: SymmetricAlgorithm): DecryptionContext =
+        fun create(key: Key, algorithm: EncryptionAlgorithm): DecryptionContext =
             SymmetricContextImpl(key, algorithm)
 
-        fun create(keyMaterial: ByteArray, algorithm: SymmetricAlgorithm): DecryptionContext {
+        fun create(keyMaterial: ByteArray, algorithm: EncryptionAlgorithm): DecryptionContext {
             val key = SecretKeySpec(keyMaterial, algorithm.secretKeySpecName)
             return SymmetricContextImpl(key, algorithm)
         }
@@ -57,7 +74,7 @@ private class HmacContextImpl(
 
 private class SymmetricContextImpl(
     private val key: Key,
-    private val algorithm: SymmetricAlgorithm,
+    private val algorithm: EncryptionAlgorithm,
 ) : EncryptionContext, DecryptionContext {
     override fun encrypt(data: ByteArray): EncryptedData = Cipher.getInstance(algorithm.algorithmName).run {
         init(Cipher.ENCRYPT_MODE, key)
@@ -69,6 +86,15 @@ private class SymmetricContextImpl(
         val gcmSpec = GCMParameterSpec(128, data.iv.asBytes)
         init(Cipher.DECRYPT_MODE, key, gcmSpec)
         doFinal(data.ciphertext.asBytes)
+    }
+}
+
+class SignatureContextImpl(
+    private val sig: Signature,
+) : SignatureContext {
+    override fun sign(data: ByteArray): ByteArray {
+        sig.update(data)
+        return sig.sign()
     }
 }
 

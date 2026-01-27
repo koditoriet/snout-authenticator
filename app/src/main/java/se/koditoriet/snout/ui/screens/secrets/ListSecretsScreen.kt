@@ -313,7 +313,7 @@ private fun TopBar(
 }
 
 @Composable
-fun ListRow(
+private fun ListRow(
     totpSecret: TotpSecret,
     selected: Boolean,
     hideSecretsFromAccessibility: Boolean,

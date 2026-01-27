@@ -11,8 +11,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,13 +24,17 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.print.PrintHelper
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.crypto.BackupSeed
-import se.koditoriet.snout.crypto.CipherAuthenticator
 import se.koditoriet.snout.crypto.wordMap
 import se.koditoriet.snout.ui.ViewState
 import se.koditoriet.snout.ui.ignoreAuthFailure
@@ -44,6 +46,7 @@ import se.koditoriet.snout.ui.screens.secrets.AddSecretByQrScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByTextScreen
 import se.koditoriet.snout.ui.screens.secrets.EditSecretMetadataScreen
 import se.koditoriet.snout.ui.screens.secrets.ListSecretsScreen
+import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSeedScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSetupScreen
 import se.koditoriet.snout.ui.screens.setup.RestoreBackupScreen
@@ -51,20 +54,25 @@ import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.Vault
 import se.koditoriet.snout.viewmodel.SnoutViewModel
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MainActivity"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: SnoutViewModel by viewModels()
-    private var idleTimeoutJob: Job? = null
     private var isBackgrounded: Boolean = true
+    private val idleTimeout = TimeoutJob(
+        name = "LockOnIdle",
+        scope = lifecycleScope,
+        onTimeout = { viewModel.lockVault() },
+    )
 
     private val screenOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             lifecycleScope.launch {
-                Log.i(TAG, "Screen off detected; locking vault")
+                Log.i(TAG, "Screen off detected; locking vault immediately")
+                idleTimeout.cancel()
                 viewModel.lockVault()
             }
         }
@@ -72,23 +80,34 @@ class MainActivity : FragmentActivity() {
 
     private val foregroundObserver = object : DefaultLifecycleObserver {
         override fun onStop(owner: LifecycleOwner) {
-            Log.i(TAG, "Lost focus; starting idle timeout")
             isBackgrounded = true
-            idleTimeoutJob = lifecycleScope.launch {
-                viewModel.lockVaultAfterIdleTimeout()
+            Log.i(TAG, "Lost focus")
+            lifecycleScope.launch {
+                val config = viewModel.config.first()
+                if (config.lockOnClose) {
+                    if (viewModel.vaultState.value == Vault.State.Unlocked) {
+                        Log.i(TAG, "Vault is unlocked and lock on close is configured; starting idle timeout")
+                        idleTimeout.start(config.lockOnCloseGracePeriod.seconds)
+                    } else {
+                        Log.i(TAG, "Vault is already locked; not starting idle timeout")
+                    }
+                } else {
+                    Log.i(TAG, "Lock on close not configured; not starting idle timeout")
+                }
             }
         }
 
         override fun onStart(owner: LifecycleOwner) {
-            Log.i(TAG, "Got back focus; stopping idle timeout")
-            idleTimeoutJob?.cancel()
-            idleTimeoutJob = null
+            Log.i(TAG, "Got back focus")
+            lifecycleScope.launch {
+                idleTimeout.cancel()
+            }
 
             if (viewModel.vaultState.value == Vault.State.Locked && isBackgrounded) {
                 lifecycleScope.launch {
                     ignoreAuthFailure {
                         Log.i(TAG, "Vault is locked; initiating unlock")
-                        viewModel.unlockVault()
+                        viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@MainActivity))
                     }
                 }
             }
@@ -106,18 +125,13 @@ class MainActivity : FragmentActivity() {
             WindowManager.LayoutParams.FLAG_SECURE,
         )
 
-        Log.i(TAG, "Setting up biometric prompt authentication")
-        (application as SnoutApp).cryptographer.setCipherAuthenticator(
-            BiometricPromptCipherAuthenticator(this)
-        )
-
         Log.i(TAG, "Registering observers")
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
         lifecycle.addObserver(foregroundObserver)
 
         enableEdgeToEdge()
         setContent {
-            MainScreen()
+            MainScreen(viewModel)
         }
     }
 
@@ -128,13 +142,13 @@ class MainActivity : FragmentActivity() {
 }
 
 @Composable
-fun MainActivity.MainScreen() {
-    val viewModel = viewModel<SnoutViewModel>()
-    val totpSecrets by viewModel.secrets.collectAsState()
+fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
+    val totpSecrets by viewModel.secrets.collectAsState(emptyList())
     val vaultState by viewModel.vaultState.collectAsState()
     val config by viewModel.config.collectAsState(Config.default)
     val showLoadingScreen = remember { mutableStateOf(false) }
     var viewState by remember { mutableStateOf<ViewState>(ViewState.LockedScreen) }
+    val authFactory by lazy { BiometricPromptAuthenticator.Factory(this) }
 
     LoadingScreen(showLoadingScreen)
 
@@ -225,7 +239,7 @@ fun MainActivity.MainScreen() {
                 LockedScreen(
                     onUnlock = onIOThread {
                         try {
-                            viewModel.unlockVault()
+                            viewModel.unlockVault(authFactory)
                             viewState = ViewState.ListSecrets
                         } catch (_: AuthenticationFailedException) {
                             // vault stays locked
@@ -240,7 +254,7 @@ fun MainActivity.MainScreen() {
                     enableDeveloperFeatures = config.enableDeveloperFeatures,
                     hideSecretsFromAccessibility = config.hideSecretsFromAccessibility,
                     getTotpCodes = { secret ->
-                        viewModel.getTotpCodes(secret, 2)
+                        viewModel.getTotpCodes(authFactory, secret, 2)
                     },
                     onLockVault = onIOThread {
                         viewModel.lockVault()
@@ -251,7 +265,7 @@ fun MainActivity.MainScreen() {
                     onAddSecretByQR = { viewState = ViewState.ScanSecretQrCode },
                     onSortModeChange = onIOThread { mode -> viewModel.setSortMode(mode) },
                     onEditSecretMetadata = { viewState = ViewState.EditSecretMetadata(it) },
-                    onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret) },
+                    onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret.id) },
                     onImportFile = onIOThread { uri -> viewModel.importFromFile(uri) },
                 )
             }
@@ -301,7 +315,7 @@ fun MainActivity.MainScreen() {
                     onLockOnCloseGracePeriodChange = onIOThread(viewModel::setLockOnCloseGracePeriod),
                     onProtectAccountListChange = onIOThread { it ->
                         ignoreAuthFailure {
-                            viewModel.rekeyVault(it)
+                            viewModel.rekeyVault(authFactory, it)
                         }
                     },
                     onScreenSecurityEnabledChange = onIOThread(viewModel::setScreenSecurity),
@@ -310,6 +324,7 @@ fun MainActivity.MainScreen() {
                     onEnableDeveloperFeaturesChange = onIOThread(viewModel::setEnableDeveloperFeatures),
                     onWipeVault = onIOThread(viewModel::wipeVault),
                     onExport = onIOThread(viewModel::exportVault),
+                    onManagePasskeys = { viewState = ViewState.ManagePasskeys },
                     getSecurityReport = {
                         withContext(Dispatchers.IO) {
                             viewModel.getSecurityReport()
@@ -317,46 +332,51 @@ fun MainActivity.MainScreen() {
                     },
                 )
             }
+            ViewState.ManagePasskeys -> {
+                ManagePasskeysScreen(
+                    passkeys = viewModel.passkeys,
+                    onDeletePasskey = onIOThread { it -> viewModel.deletePasskey(it.credentialId) }
+                )
+            }
         }
     }
 }
 
-class BiometricPromptCipherAuthenticator(
-    private val activity: FragmentActivity,
-) : CipherAuthenticator {
-    override suspend fun <T> authenticate(authenticatedAction: () -> T): T {
-        Log.d(TAG, "Authenticating user")
-        val result = withContext(Dispatchers.Main) {
-            suspendCoroutine { continuation ->
-                val callback = object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        Log.d(TAG, "Authentication succeeded")
-                        continuation.resume(authenticatedAction())
-                    }
+/**
+ * Sets up an action to be executed when a timeout expires.
+ * The action can be canceled up until the point where the timeout expires. After that, it's unstoppable.
+ */
+private class TimeoutJob(
+    private val name: String,
+    private val scope: CoroutineScope,
+    private val onTimeout: suspend () -> Unit,
+) {
+    private var timeoutJob: Job? = null
+    private val mutex = Mutex()
 
-                    override fun onAuthenticationFailed() {
-                        super.onAuthenticationFailed()
-                        Log.d(TAG, "Authentication failed")
-                        continuation.resume(null)
-                    }
+    suspend fun start(timeout: Duration) = mutex.withLock {
+        // Reset timeout if one is already running
+        if (timeoutJob != null) {
+            Log.i(TAG, "Timeout job '$name' already pending; stopping it")
+            timeoutJob!!.cancel()
+        }
 
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        Log.w(TAG, "Authentication errored ($errorCode): $errString")
-                        continuation.resume(null)
-                    }
-                }
-                val prompt = BiometricPrompt(activity, callback)
-                val promptInfo = BiometricPrompt.PromptInfo.Builder().apply {
-                    setTitle(reason ?: activity.appStrings.viewModel.authDefaultReason)
-                    setSubtitle(subtitle ?: activity.appStrings.viewModel.authDefaultSubtitle)
-                    setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                    setNegativeButtonText(activity.appStrings.generic.cancel)
-                }.build()
-                prompt.authenticate(promptInfo)
+        Log.i(TAG, "Executing timeout job '$name' in $timeout")
+        timeoutJob = scope.launch {
+            delay(timeout)
+
+            // If the timeout has already expired, the job is no longer stoppable
+            mutex.withLock {
+                Log.i(TAG, "Timeout expired for job '$name'; executing action")
+                onTimeout()
+                timeoutJob = null
             }
         }
-        return result ?: throw AuthenticationFailedException("user canceled authentication")
+    }
+
+    suspend fun cancel() = mutex.withLock {
+        Log.i(TAG, "Canceling timeout for job '$name'")
+        timeoutJob?.cancel()
+        timeoutJob = null
     }
 }

@@ -6,13 +6,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import se.koditoriet.snout.crypto.Cryptographer
 import se.koditoriet.snout.repository.VaultRepository
+import se.koditoriet.snout.synchronization.Sync
 import se.koditoriet.snout.vault.Vault
 
 private const val TAG = "SnoutApp"
 
 class SnoutApp : Application() {
-    val cryptographer: Cryptographer
-    val vault: Vault
+    val vault: Sync<Vault>
     val config: DataStore<Config> by dataStore("config", ConfigSerializer)
 
     init {
@@ -22,14 +22,13 @@ class SnoutApp : Application() {
             VaultRepository.open(this, dbName, key)
         }
 
-        Log.i(TAG, "Creating cryptographer")
-        cryptographer = Cryptographer()
-
         Log.i(TAG, "Creating vault")
-        vault = Vault(
-            repositoryFactory = repositoryFactory,
-            cryptographer = cryptographer,
-            dbFile = lazy { getDatabasePath("vault")!! },
-        )
+        vault = Sync {
+            Vault(
+                repositoryFactory = repositoryFactory,
+                cryptographer = Cryptographer(),
+                dbFile = lazy { getDatabasePath("vault")!! },
+            )
+        }
     }
 }

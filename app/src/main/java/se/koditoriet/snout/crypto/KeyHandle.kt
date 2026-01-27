@@ -37,20 +37,27 @@ sealed class KeyUsage<TAlgorithm : KeyAlgorithm>(val name: String) {
             HMAC.name -> HMAC
             Encrypt.name -> Encrypt
             EncryptDecrypt.name -> EncryptDecrypt
+            Sign.name -> Sign
             else -> throw IllegalArgumentException("'$s' is not a valid key usage")
         } as KeyUsage<T>
     }
+
     object HMAC : KeyUsage<HmacAlgorithm>("hmac") {
         override val purposes: Int
             get() = KeyProperties.PURPOSE_SIGN
     }
 
-    object Encrypt : KeyUsage<SymmetricAlgorithm>("encrypt") {
+    object Sign : KeyUsage<ECAlgorithm>("sign") {
+        override val purposes: Int
+            get() = KeyProperties.PURPOSE_SIGN
+    }
+
+    object Encrypt : KeyUsage<EncryptionAlgorithm>("encrypt") {
         override val purposes: Int
             get() = KeyProperties.PURPOSE_ENCRYPT
     }
 
-    object EncryptDecrypt : KeyUsage<SymmetricAlgorithm>("encrypt-decrypt") {
+    object EncryptDecrypt : KeyUsage<EncryptionAlgorithm>("encrypt-decrypt") {
         override val purposes: Int
             get() = KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
     }
@@ -68,16 +75,19 @@ sealed interface KeyAlgorithm {
             keyAlgorithm: String,
         ): TAlgorithm = when (keyUsage) {
             KeyUsage.HMAC -> HmacAlgorithm.valueOf(keyAlgorithm)
-            KeyUsage.Encrypt -> SymmetricAlgorithm.valueOf(keyAlgorithm)
-            KeyUsage.EncryptDecrypt -> SymmetricAlgorithm.valueOf(keyAlgorithm)
+            KeyUsage.Encrypt -> EncryptionAlgorithm.valueOf(keyAlgorithm)
+            KeyUsage.EncryptDecrypt -> EncryptionAlgorithm.valueOf(keyAlgorithm)
+            KeyUsage.Sign -> ECAlgorithm.valueOf(keyAlgorithm)
         } as TAlgorithm
     }
 }
 
+sealed interface SymmetricAlgorithm : KeyAlgorithm
+
 enum class HmacAlgorithm(
     override val algorithmName: String,
     val keyStoreDigestName: String,
-) : KeyAlgorithm {
+) : SymmetricAlgorithm {
     SHA1(KeyProperties.KEY_ALGORITHM_HMAC_SHA1, KeyProperties.DIGEST_SHA1),
     SHA256(KeyProperties.KEY_ALGORITHM_HMAC_SHA256, KeyProperties.DIGEST_SHA256),
     SHA512(KeyProperties.KEY_ALGORITHM_HMAC_SHA512, KeyProperties.DIGEST_SHA512);
@@ -86,13 +96,13 @@ enum class HmacAlgorithm(
         get() = algorithmName
 }
 
-enum class SymmetricAlgorithm(
+enum class EncryptionAlgorithm(
     override val algorithmName: String,
     val keySize: Int,
     val blockMode: String,
     val paddingScheme: String,
     override val secretKeySpecName: String,
-) : KeyAlgorithm {
+) : SymmetricAlgorithm {
     AES_GCM(
         "AES/GCM/NoPadding",
         256,
@@ -100,6 +110,20 @@ enum class SymmetricAlgorithm(
         KeyProperties.ENCRYPTION_PADDING_NONE,
         KeyProperties.KEY_ALGORITHM_AES,
     )
+}
+
+enum class ECAlgorithm(
+    override val algorithmName: String,
+    val curve: String,
+    val keyStoreDigestName: String,
+    override val secretKeySpecName: String,
+) : KeyAlgorithm {
+    ES256(
+        "SHA256withECDSA",
+        "secp256r1",
+        KeyProperties.DIGEST_SHA256,
+        KeyProperties.KEY_ALGORITHM_EC,
+    );
 }
 
 sealed interface KeyIdentifier {
@@ -126,5 +150,5 @@ sealed interface KeyIdentifier {
     }
 }
 
-val KeyHandle<SymmetricAlgorithm>.allowDecrypt: Boolean
+val KeyHandle<EncryptionAlgorithm>.allowDecrypt: Boolean
     get() = usage == KeyUsage.EncryptDecrypt

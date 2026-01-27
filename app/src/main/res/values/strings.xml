@@ -1,6 +1,7 @@
 <resources>
     <!-- Generic strings -->
     <string name="app_name">Snout</string>
+    <string name="generic_ok">OK</string>
     <string name="generic_back">Back</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_continue">Continue</string>
@@ -74,8 +75,16 @@
     <string name="add_secret_add_secret">Add secret</string>
 
 
+    <!-- Manage passkeys screen -->
+    <string name="manage_passkeys_heading">Manage passkeys</string>
+    <string name="manage_passkeys_permanently_delete_passkey">Permanently delete passkey</string>
+
+
     <!-- Settings screen -->
     <string name="settings_heading">Settings</string>
+
+    <string name="settings_manage_passkeys">Manage passkeys</string>
+    <string name="settings_manage_passkeys_description">View and remove passkey credentials.</string>
 
     <string name="settings_enable_backups">Enable backups</string>
     <string name="settings_enable_backups_description">Allow the creation of encrypted backups.\n\nEven when enabled, backups are not created automatically. You need to export them manually.</string>
@@ -109,6 +118,10 @@
         <item quantity="one">%1$d/%2$d secret stored in %3$s.</item>
         <item quantity="other">%1$d/%2$d secrets stored in %3$s.</item>
     </plurals>
+    <plurals name="settings_key_storage_overview_sheet_passkey_group_grade">
+        <item quantity="one">%1$d/%2$d passkey stored in %3$s.</item>
+        <item quantity="other">%1$d/%2$d passkeys stored in %3$s.</item>
+    </plurals>
     <string name="settings_key_storage_overview_sheet_grade_excellent">Excellent</string>
     <string name="settings_key_storage_overview_sheet_grade_good">Good</string>
     <string name="settings_key_storage_overview_sheet_grade_weak">Weak</string>
@@ -132,8 +145,8 @@
 
 
     <!-- View model -->
-    <string name="view_model_auth_create_vault">Create Vault</string>
-    <string name="view_model_auth_create_vault_subtitle">Confirm your identity to create vault.</string>
+    <string name="view_model_auth_use_passkey">Sign In</string>
+    <string name="view_model_auth_use_passkey_subtitle">Confirm your identity to sign in.</string>
     <string name="view_model_auth_unlock_vault">Unlock Vault</string>
     <string name="view_model_auth_unlock_vault_subtitle">Confirm your identity to unlock vault.</string>
     <string name="view_model_auth_reveal_code">Reveal Code</string>
@@ -144,4 +157,13 @@
     <string name="view_model_auth_vault_bioprompt_disable_subtitle">Confirm your identity to unlock vault without biometrics.</string>
     <string name="view_model_auth_default_reason">Authenticate</string>
     <string name="view_model_auth_default_subtitle">Confirm your identity</string>
+
+
+    <!-- Credential provider service -->
+    <string name="credential_provider_authentication_action_title">Unlock Snout</string>
+    <string name="credential_provider_passkey_already_exists">Passkey already exists</string>
+    <string name="credential_provider_passkey_already_exists_explanation">You already have an active passkey for this service. Try to sign in with that one instead.</string>
+    <string name="credential_provider_unable_to_establish_trust">Unable to establish trust</string>
+    <string name="credential_provider_unable_to_establish_trust_explanation">Snout could not determine that this service should have access to the passkey.</string>
+
 </resources>

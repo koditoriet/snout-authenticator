@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.com.google.devtools.ksp)
@@ -12,8 +11,8 @@ plugins {
 configurations.all {
     resolutionStrategy {
         // Fix Room being a broken piece of garbage
-        force("org.jetbrains.kotlinx:kotlinx-serialization-core:1.9.0")
-        force("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+        force("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
+        force("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
     }
 }
 
@@ -28,8 +27,7 @@ android {
         minSdk = 31
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
-
+        versionName = "0.1-pre5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -55,12 +53,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlin {
+        jvmToolchain(21)
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
+            jvmTarget = JvmTarget.JVM_21
         }
     }
     buildFeatures {
@@ -85,9 +84,13 @@ dependencies {
     implementation(libs.androidx.biometric.ktx)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.datastore)
+    implementation(libs.androidx.credentials)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.fragment.fragment.ktx)
+
+    // CBOR
+    implementation(libs.com.upokecenter.cbor)
 
     // kotlinx-datetime
     implementation(libs.org.jetbrains.kotlinx.datetime)

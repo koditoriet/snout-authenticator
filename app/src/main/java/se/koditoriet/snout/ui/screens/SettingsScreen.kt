@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,7 +32,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -52,6 +50,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import se.koditoriet.snout.appStrings
+import se.koditoriet.snout.ui.components.IrrevocableActionConfirmationDialog
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.primaryHint
 import se.koditoriet.snout.ui.sheets.SecurityReportSheet
@@ -85,6 +84,7 @@ fun SettingsScreen(
     onEnableDeveloperFeaturesChange: (Boolean) ->Unit,
     onWipeVault: () -> Unit,
     onExport: (Uri) -> Unit,
+    onManagePasskeys: () -> Unit,
     getSecurityReport: suspend () -> SecurityReport,
     clock: Clock = Clock.System,
     timeZone: TimeZone = TimeZone.currentSystemDefault(),
@@ -117,6 +117,13 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            item {
+                SettingActionRow(
+                    title = screenStrings.managePasskeys,
+                    description = screenStrings.managePasskeysDescription,
+                    onClick = onManagePasskeys,
+                )
+            }
 
             // Enable backups
             item {
@@ -243,7 +250,7 @@ fun SettingsScreen(
 
         // Confirmation dialog - erase data
         if (showWipeDialog) {
-            ConfirmationDialog(
+            IrrevocableActionConfirmationDialog(
                 text = screenStrings.eraseDataDialogText,
                 buttonText = screenStrings.eraseDataDialogConfirm,
                 onCancel = { showWipeDialog = false },
@@ -256,7 +263,7 @@ fun SettingsScreen(
 
         // Confirmation dialog - disable backups
         if (showDisableBackupsDialog) {
-            ConfirmationDialog(
+            IrrevocableActionConfirmationDialog(
                 text = screenStrings.enableBackupsDisableDialogText,
                 buttonText = screenStrings.enableBackupsDisableDialogConfirm,
                 onCancel = { showDisableBackupsDialog = false },
@@ -371,30 +378,6 @@ private fun SettingsDescription(description: String) {
     )
 }
 
-@Composable
-private fun ConfirmationDialog(
-    text: String,
-    buttonText: String,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onCancel,
-        title = { Text(appStrings.generic.thisIsIrrevocable) },
-        text = { Text(text) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(buttonText, color = MaterialTheme.colorScheme.error)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(appStrings.generic.cancel)
-            }
-        }
-    )
-
-}
 
 @Composable
 private fun RowScope.SettingsInfo(

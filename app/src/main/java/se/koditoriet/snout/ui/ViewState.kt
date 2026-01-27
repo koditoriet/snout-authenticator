@@ -19,4 +19,5 @@ sealed class ViewState(
     class EditSecretMetadata(val secret: TotpSecret) : ViewState(ListSecrets)
     object ScanSecretQrCode : ViewState(ListSecrets)
     object Settings : ViewState(ListSecrets)
+    object ManagePasskeys: ViewState(Settings)
 }

@@ -28,9 +28,29 @@ fun SecurityReportSheet(securityReport: SecurityReport) {
         heading = appStrings.settingsScreen.keyStorageOverviewDescriptionSheetHeading,
         details = appStrings.settingsScreen.keyStorageOverviewDescriptionSheetDescription,
     )
+
     BackupKeyGrade(securityReport.backupKeyStatus)
+
     for ((securityLevel, secrets) in securityReport.secretsStatus.toList().sortedBy { it.first }.reversed()) {
-        SecretGroupGrade(securityReport.totalSecrets, secrets, securityLevel)
+        ReportItem(
+            securityLevel.grade,
+            appStrings.settingsScreen.keyStorageOverviewDescriptionSheetSecretGroupGrade(
+                groupSize = secrets,
+                totalSecrets = securityReport.totalSecrets,
+                storageClass = securityLevel.description,
+            ),
+        )
+    }
+
+    for ((securityLevel, secrets) in securityReport.passkeysStatus.toList().sortedBy { it.first }.reversed()) {
+        ReportItem(
+            securityLevel.grade,
+            appStrings.settingsScreen.keyStorageOverviewDescriptionSheetPasskeyGroupGrade(
+                groupSize = secrets,
+                totalPasskeys = securityReport.totalPasskeys,
+                storageClass = securityLevel.description,
+            ),
+        )
     }
 }
 
@@ -40,18 +60,6 @@ private fun BackupKeyGrade(backupKeyStatus: KeySecurityLevel?) {
         appStrings.settingsScreen.keyStorageOverviewDescriptionSheetDescription(it.description)
     } ?: appStrings.settingsScreen.keyStorageOverviewDescriptionSheetBackupsDisabled
     ReportItem(backupKeyStatus.grade, description)
-}
-
-@Composable
-private fun SecretGroupGrade(totalSecrets: Int, secretsInGroup: Int, groupSecurityLevel: KeySecurityLevel) {
-    ReportItem(
-        groupSecurityLevel.grade,
-        appStrings.settingsScreen.keyStorageOverviewDescriptionSheetSecretGroupGrade(
-            groupSize = secretsInGroup,
-            totalSecrets = totalSecrets,
-            storageClass = groupSecurityLevel.description,
-        ),
-    )
 }
 
 @Composable

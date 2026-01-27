@@ -3,6 +3,7 @@ package se.koditoriet.snout.vault
 import androidx.core.net.toUri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverter
 import kotlinx.serialization.Serializable
 import se.koditoriet.snout.codec.totpAccount
 import se.koditoriet.snout.codec.totpAlgorithm
@@ -16,7 +17,8 @@ import se.koditoriet.snout.crypto.KeyHandle
 @Serializable
 @Entity(tableName = "totp_secrets")
 data class TotpSecret(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Id,
     val sortOrder: Long,
     val issuer: String,
     val account: String?,
@@ -29,6 +31,22 @@ data class TotpSecret(
     val keyHandle: KeyHandle<HmacAlgorithm> by lazy {
         KeyHandle.fromAlias(keyAlias)
     }
+
+    @Serializable
+    @JvmInline
+    value class Id(private val id: Int) {
+        class TypeConverters {
+            @TypeConverter
+            fun toId(id: Int): Id= Id(id)
+
+            @TypeConverter
+            fun fromId(id: Id): Int = id.id
+        }
+
+        companion object {
+            val None: Id = Id(0)
+        }
+    }
 }
 
 data class NewTotpSecret(
@@ -39,6 +57,7 @@ data class NewTotpSecret(
         val issuer: String,
         val account: String?,
     )
+
     data class SecretData(
         val secret: CharArray,
         val digits: Int,
@@ -66,4 +85,5 @@ data class NewTotpSecret(
         }
     }
 }
+
 enum class TotpAlgorithm { SHA1, SHA256, SHA512 }
