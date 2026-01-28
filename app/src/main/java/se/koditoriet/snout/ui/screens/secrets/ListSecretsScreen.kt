@@ -1,6 +1,7 @@
 package se.koditoriet.snout.ui.screens.secrets
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -238,9 +239,9 @@ private fun SecretList(
         }
         items(
             items = if (isManuallySortable) reorderableSecrets else sortedSecrets,
-            key = { it.id })
+            key = { it.id.toString() })
         { item ->
-            ReorderableItem(reorderableLazyListState, key = item.id) { isDragging ->
+            ReorderableItem(reorderableLazyListState, key = item.id.toString()) { isDragging ->
                 val reorderableScope = this
                 val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
                 Surface(shadowElevation = elevation) {
