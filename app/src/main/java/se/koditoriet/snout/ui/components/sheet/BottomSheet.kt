@@ -37,11 +37,12 @@ import se.koditoriet.snout.ui.theme.SPACING_S
 fun <S> BottomSheet(
     hideSheet: () -> Unit,
     sheetState: SheetState,
-    padding: PaddingValues,
+    padding: PaddingValues? = null,
     sheetViewState: S,
     content: @Composable ColumnScope.(state: S) -> Unit,
 ) {
-    Box(Modifier.fillMaxSize().padding(padding)) {
+    val modifier = Modifier.fillMaxSize()
+    Box(modifier.takeIf { padding != null }?.padding(padding!!) ?: modifier) {
         ModalBottomSheet(
             onDismissRequest = hideSheet,
             sheetState = sheetState,

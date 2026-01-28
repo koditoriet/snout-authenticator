@@ -27,7 +27,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -48,28 +47,23 @@ import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSeedScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSetupScreen
 import se.koditoriet.snout.ui.screens.setup.RestoreBackupScreen
+import se.koditoriet.snout.ui.snoutApp
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.Vault
 import se.koditoriet.snout.viewmodel.SnoutViewModel
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MainActivity"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: SnoutViewModel by viewModels()
     private var isBackgrounded: Boolean = true
-    private val idleTimeout = TimeoutJob(
-        name = "LockOnIdle",
-        scope = lifecycleScope,
-        onTimeout = { viewModel.lockVault() },
-    )
 
     private val screenOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             lifecycleScope.launch {
                 Log.i(TAG, "Screen off detected; locking vault immediately")
-                idleTimeout.cancel()
+                snoutApp.cancelIdleTimeout()
                 viewModel.lockVault()
             }
         }
@@ -80,16 +74,8 @@ class MainActivity : FragmentActivity() {
             isBackgrounded = true
             Log.i(TAG, "Lost focus")
             lifecycleScope.launch {
-                val config = viewModel.config.first()
-                if (config.lockOnClose) {
-                    if (viewModel.vaultState.value == Vault.State.Unlocked) {
-                        Log.i(TAG, "Vault is unlocked and lock on close is configured; starting idle timeout")
-                        idleTimeout.start(config.lockOnCloseGracePeriod.seconds)
-                    } else {
-                        Log.i(TAG, "Vault is already locked; not starting idle timeout")
-                    }
-                } else {
-                    Log.i(TAG, "Lock on close not configured; not starting idle timeout")
+                if (viewModel.vaultState.value == Vault.State.Unlocked) {
+                    snoutApp.startIdleTimeout()
                 }
             }
         }
@@ -97,7 +83,7 @@ class MainActivity : FragmentActivity() {
         override fun onStart(owner: LifecycleOwner) {
             Log.i(TAG, "Got back focus")
             lifecycleScope.launch {
-                idleTimeout.cancel()
+                snoutApp.cancelIdleTimeout()
             }
 
             if (viewModel.vaultState.value == Vault.State.Locked && isBackgrounded) {
@@ -314,7 +300,8 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
             ViewState.ManagePasskeys -> {
                 ManagePasskeysScreen(
                     passkeys = viewModel.passkeys,
-                    onDeletePasskey = onIOThread { it -> viewModel.deletePasskey(it.credentialId) }
+                    onUpdatePasskey = onIOThread { it -> viewModel.updatePasskey(it) },
+                    onDeletePasskey = onIOThread { it -> viewModel.deletePasskey(it.credentialId) },
                 )
             }
         }
@@ -325,7 +312,7 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
  * Sets up an action to be executed when a timeout expires.
  * The action can be canceled up until the point where the timeout expires. After that, it's unstoppable.
  */
-private class TimeoutJob(
+class TimeoutJob(
     private val name: String,
     private val scope: CoroutineScope,
     private val onTimeout: suspend () -> Unit,

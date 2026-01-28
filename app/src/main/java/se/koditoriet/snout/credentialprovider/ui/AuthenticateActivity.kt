@@ -14,7 +14,9 @@ import androidx.credentials.PublicKeyCredential
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import se.koditoriet.snout.BiometricPromptAuthenticator
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.credentialprovider.CREDENTIAL_DATA
@@ -29,6 +31,7 @@ import se.koditoriet.snout.credentialprovider.webauthn.SignedAuthResponse
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.ui.components.InformationDialog
 import se.koditoriet.snout.ui.screens.EmptyScreen
+import se.koditoriet.snout.ui.snoutApp
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.vault.Passkey
@@ -49,10 +52,9 @@ class AuthenticateActivity : FragmentActivity() {
 
             LaunchedEffect(Unit) {
                 try {
-                    Log.d(TAG, "Unlocking vault")
+                    snoutApp.cancelIdleTimeout()
                     viewModel.unlockVault(authFactory)
                 } catch (_: AuthenticationFailedException) {
-                    Log.i(TAG, "Aborting signing")
                     finishWithResult(null)
                     return@LaunchedEffect
                 }
@@ -115,7 +117,11 @@ class AuthenticateActivity : FragmentActivity() {
                 setResult(RESULT_CANCELED, intent)
             }
         }
-        finish()
+        lifecycleScope.launch {
+            snoutApp.startIdleTimeout()
+            Log.d(TAG, "Finishing activity")
+            finish()
+        }
     }
 }
 

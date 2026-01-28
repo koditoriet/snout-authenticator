@@ -30,6 +30,7 @@ class AppStrings(private val ctx: Context) {
         val continueOn by ctx.s(R.string.generic_continue)
         val save by ctx.s(R.string.generic_save)
         val seconds by ctx.s(R.string.generic_seconds)
+        val selectItem by ctx.s(R.string.generic_select_item)
         val thisIsIrrevocable by ctx.s(R.string.generic_this_is_irrevocable)
         val keyStorageStrongbox by ctx.s(R.string.generic_key_storage_strongbox)
         val keyStorageTee by ctx.s(R.string.generic_key_storage_tee)
@@ -72,6 +73,7 @@ class AppStrings(private val ctx: Context) {
         val filterClear by ctx.s(R.string.secrets_filter_clear)
         val lockScreen by ctx.s(R.string.secrets_lock_screen)
         val settings by ctx.s(R.string.secrets_settings)
+        val generateOneTimeCode by ctx.s(R.string.secrets_generate_one_time_code)
 
         val addSecretSheetHeading by ctx.s(R.string.secrets_add_secret_sheet_heading)
         val addSecretSheetDescription by ctx.s(R.string.secrets_add_secret_sheet_description)
@@ -238,6 +240,8 @@ class AppStrings(private val ctx: Context) {
         val passkeyAlreadyExistsExplanation by ctx.s(R.string.credential_provider_passkey_already_exists_explanation)
         val unableToEstablishTrust by ctx.s(R.string.credential_provider_unable_to_establish_trust)
         val unableToEstablishTrustExplanation by ctx.s(R.string.credential_provider_unable_to_establish_trust_explanation)
+        val editPasskeyDisplayName by ctx.s(R.string.credential_provider_edit_passkey_display_name)
+        val passkeyDisplayName by ctx.s(R.string.credential_provider_passkey_display_name)
 
     }
 }

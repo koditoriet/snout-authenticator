@@ -211,6 +211,10 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
         deletePasskey(credentialId)
     }
 
+    suspend fun updatePasskey(passkey: Passkey) = vault.withLock {
+        updatePasskey(passkey)
+    }
+
     suspend fun addPasskey(rpId: String, userId: ByteArray, userName: String, displayName: String) = vault.withLock {
         addPasskey(rpId, userId, userName, displayName)
     }

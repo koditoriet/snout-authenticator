@@ -130,6 +130,11 @@ class Vault(
         passkeys.get(credentialId)
     }
 
+    suspend fun updatePasskey(passkey: Passkey) = withPasskeyRepository { passkeys ->
+        Log.i(TAG, "Updating passkey with credential ID ${passkey.credentialId}")
+        passkeys.update(passkey)
+    }
+
     suspend fun deletePasskey(credentialId: CredentialId) = withPasskeyRepository { passkeys ->
         Log.i(TAG, "Deleting passkey with credential ID $credentialId")
         val passkey = passkeys.get(credentialId)

@@ -391,6 +391,9 @@ private fun ListRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(PADDING_XS)
+            .clip(RoundedCornerShape(ROUNDED_CORNER_SIZE))
+            .background(backgroundColor)
             .combinedClickable(
                 onClick = {
                     scope.launch {
@@ -400,11 +403,10 @@ private fun ListRow(
                         }
                     }
                 },
+                onClickLabel = appStrings.secretsScreen.generateOneTimeCode,
                 onLongClick = { onLongPressSecret(totpSecret) },
+                onLongClickLabel = appStrings.generic.selectItem,
             )
-            .padding(PADDING_XS)
-            .clip(RoundedCornerShape(ROUNDED_CORNER_SIZE))
-            .background(backgroundColor)
             .padding(PADDING_M),
         verticalAlignment = Alignment.CenterVertically,
 
