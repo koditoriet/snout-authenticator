@@ -1,9 +1,5 @@
 package se.koditoriet.snout
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -22,16 +18,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.print.PrintHelper
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.crypto.BackupSeed
@@ -41,72 +30,33 @@ import se.koditoriet.snout.ui.ignoreAuthFailure
 import se.koditoriet.snout.ui.onIOThread
 import se.koditoriet.snout.ui.screens.LoadingScreen
 import se.koditoriet.snout.ui.screens.LockedScreen
+import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.SettingsScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByQrScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByTextScreen
-import se.koditoriet.snout.ui.screens.secrets.EditSecretMetadataScreen
 import se.koditoriet.snout.ui.screens.secrets.ListSecretsScreen
-import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSeedScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSetupScreen
 import se.koditoriet.snout.ui.screens.setup.RestoreBackupScreen
 import se.koditoriet.snout.ui.theme.SnoutTheme
-import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.Vault
 import se.koditoriet.snout.viewmodel.SnoutViewModel
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MainActivity"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: SnoutViewModel by viewModels()
     private var isBackgrounded: Boolean = true
-    private val idleTimeout = TimeoutJob(
-        name = "LockOnIdle",
-        scope = lifecycleScope,
-        onTimeout = { viewModel.lockVault() },
-    )
-
-    private val screenOffReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            lifecycleScope.launch {
-                Log.i(TAG, "Screen off detected; locking vault immediately")
-                idleTimeout.cancel()
-                viewModel.lockVault()
-            }
-        }
-    }
 
     private val foregroundObserver = object : DefaultLifecycleObserver {
         override fun onStop(owner: LifecycleOwner) {
             isBackgrounded = true
-            Log.i(TAG, "Lost focus")
-            lifecycleScope.launch {
-                val config = viewModel.config.first()
-                if (config.lockOnClose) {
-                    if (viewModel.vaultState.value == Vault.State.Unlocked) {
-                        Log.i(TAG, "Vault is unlocked and lock on close is configured; starting idle timeout")
-                        idleTimeout.start(config.lockOnCloseGracePeriod.seconds)
-                    } else {
-                        Log.i(TAG, "Vault is already locked; not starting idle timeout")
-                    }
-                } else {
-                    Log.i(TAG, "Lock on close not configured; not starting idle timeout")
-                }
-            }
         }
 
         override fun onStart(owner: LifecycleOwner) {
-            Log.i(TAG, "Got back focus")
-            lifecycleScope.launch {
-                idleTimeout.cancel()
-            }
-
-            if (viewModel.vaultState.value == Vault.State.Locked && isBackgrounded) {
+            if (isBackgrounded) {
                 lifecycleScope.launch {
                     ignoreAuthFailure {
-                        Log.i(TAG, "Vault is locked; initiating unlock")
                         viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@MainActivity))
                     }
                 }
@@ -125,8 +75,7 @@ class MainActivity : FragmentActivity() {
             WindowManager.LayoutParams.FLAG_SECURE,
         )
 
-        Log.i(TAG, "Registering observers")
-        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+        Log.i(TAG, "Registering unlock lifecycle observer")
         lifecycle.addObserver(foregroundObserver)
 
         enableEdgeToEdge()
@@ -134,17 +83,12 @@ class MainActivity : FragmentActivity() {
             MainScreen(viewModel)
         }
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(screenOffReceiver)
-    }
 }
 
 @Composable
 fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
     val totpSecrets by viewModel.secrets.collectAsState(emptyList())
-    val vaultState by viewModel.vaultState.collectAsState()
+    val vaultState by viewModel.vaultState.collectAsState(Vault.State.Uninitialized)
     val config by viewModel.config.collectAsState(Config.default)
     val showLoadingScreen = remember { mutableStateOf(false) }
     var viewState by remember { mutableStateOf<ViewState>(ViewState.LockedScreen) }
@@ -163,18 +107,13 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
 
     SnoutTheme {
         BackHandler {
-            if (viewState is ViewState.ListSecrets) {
-                Log.d(TAG, "Back pressed on ListSecretsScreen, retiring to background")
-                moveTaskToBack(true)
-            } else {
-                val goToState = viewState.previousViewState
-                lifecycleScope.launch {
-                    if (goToState is ViewState.LockedScreen) {
-                        viewModel.lockVault()
-                    }
-                    goToState?.apply {
-                        viewState = this
-                    }
+            val goToState = viewState.previousViewState
+            lifecycleScope.launch {
+                if (goToState is ViewState.LockedScreen) {
+                    viewModel.lockVault()
+                }
+                goToState?.apply {
+                    viewState = this
                 }
             }
         }
@@ -264,7 +203,7 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
                     onAddSecret = { viewState = ViewState.AddSecret(it) },
                     onAddSecretByQR = { viewState = ViewState.ScanSecretQrCode },
                     onSortModeChange = onIOThread { mode -> viewModel.setSortMode(mode) },
-                    onEditSecretMetadata = { viewState = ViewState.EditSecretMetadata(it) },
+                    onUpdateSecret = onIOThread { secret -> viewModel.updateTotpSecret(secret) },
                     onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret.id) },
                     onImportFile = onIOThread { uri -> viewModel.importFromFile(uri) },
                 )
@@ -275,19 +214,6 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
                     prefilledSecret = (viewState as ViewState.AddSecret).prefilledSecret,
                     onSave = onIOThread { newSecret ->
                         viewModel.addTotpSecret(newSecret)
-                        viewState = ViewState.ListSecrets
-                    },
-                    onCancel = { viewState = ViewState.ListSecrets },
-                )
-            }
-            is ViewState.EditSecretMetadata -> {
-                val secret = (viewState as ViewState.EditSecretMetadata).secret
-                val metadata = NewTotpSecret.Metadata(issuer = secret.issuer, account = secret.account)
-                EditSecretMetadataScreen(
-                    metadata = metadata,
-                    onSave = onIOThread { newMetadata ->
-                        val updatedSecret = secret.copy(issuer = newMetadata.issuer, account = newMetadata.account)
-                        viewModel.updateTotpSecret(updatedSecret)
                         viewState = ViewState.ListSecrets
                     },
                     onCancel = { viewState = ViewState.ListSecrets },
@@ -335,48 +261,10 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
             ViewState.ManagePasskeys -> {
                 ManagePasskeysScreen(
                     passkeys = viewModel.passkeys,
-                    onDeletePasskey = onIOThread { it -> viewModel.deletePasskey(it.credentialId) }
+                    onUpdatePasskey = onIOThread { it -> viewModel.updatePasskey(it) },
+                    onDeletePasskey = onIOThread { it -> viewModel.deletePasskey(it.credentialId) },
                 )
             }
         }
-    }
-}
-
-/**
- * Sets up an action to be executed when a timeout expires.
- * The action can be canceled up until the point where the timeout expires. After that, it's unstoppable.
- */
-private class TimeoutJob(
-    private val name: String,
-    private val scope: CoroutineScope,
-    private val onTimeout: suspend () -> Unit,
-) {
-    private var timeoutJob: Job? = null
-    private val mutex = Mutex()
-
-    suspend fun start(timeout: Duration) = mutex.withLock {
-        // Reset timeout if one is already running
-        if (timeoutJob != null) {
-            Log.i(TAG, "Timeout job '$name' already pending; stopping it")
-            timeoutJob!!.cancel()
-        }
-
-        Log.i(TAG, "Executing timeout job '$name' in $timeout")
-        timeoutJob = scope.launch {
-            delay(timeout)
-
-            // If the timeout has already expired, the job is no longer stoppable
-            mutex.withLock {
-                Log.i(TAG, "Timeout expired for job '$name'; executing action")
-                onTimeout()
-                timeoutJob = null
-            }
-        }
-    }
-
-    suspend fun cancel() = mutex.withLock {
-        Log.i(TAG, "Canceling timeout for job '$name'")
-        timeoutJob?.cancel()
-        timeoutJob = null
     }
 }

@@ -24,6 +24,9 @@ val SPACING_L = 16.dp
 val SPACING_XL = 24.dp
 val SPACING_XXL = 32.dp
 
+// Large icons like the padlock on the lock screen, etc.
+val BACKGROUND_ICON_SIZE = 160.dp
+
 // Backup seed screen
 val BACKUP_SEED_QR_CODE_WIDTH = 200
 val BACKUP_SEED_QR_CODE_HEIGHT = 200

@@ -30,6 +30,7 @@ class AppStrings(private val ctx: Context) {
         val continueOn by ctx.s(R.string.generic_continue)
         val save by ctx.s(R.string.generic_save)
         val seconds by ctx.s(R.string.generic_seconds)
+        val selectItem by ctx.s(R.string.generic_select_item)
         val thisIsIrrevocable by ctx.s(R.string.generic_this_is_irrevocable)
         val keyStorageStrongbox by ctx.s(R.string.generic_key_storage_strongbox)
         val keyStorageTee by ctx.s(R.string.generic_key_storage_tee)
@@ -72,6 +73,7 @@ class AppStrings(private val ctx: Context) {
         val filterClear by ctx.s(R.string.secrets_filter_clear)
         val lockScreen by ctx.s(R.string.secrets_lock_screen)
         val settings by ctx.s(R.string.secrets_settings)
+        val generateOneTimeCode by ctx.s(R.string.secrets_generate_one_time_code)
 
         val addSecretSheetHeading by ctx.s(R.string.secrets_add_secret_sheet_heading)
         val addSecretSheetDescription by ctx.s(R.string.secrets_add_secret_sheet_description)
@@ -83,6 +85,7 @@ class AppStrings(private val ctx: Context) {
         val actionsSheetNoAccount by ctx.s(R.string.secrets_actions_sheet_no_account)
         val actionsSheetEdit by ctx.s(R.string.secrets_actions_sheet_edit)
         val actionsSheetDelete by ctx.s(R.string.secrets_actions_sheet_delete)
+        val actionsSheetDeleteWarning by ctx.s(R.string.secrets_actions_sheet_delete_warning)
 
         fun sortAlphabetically(active: Boolean) = when (active) {
             true -> R.string.secrets_sort_alphabetically_active
@@ -108,14 +111,11 @@ class AppStrings(private val ctx: Context) {
         val tapToUnlock by ctx.s(R.string.locked_tap_to_unlock)
     }
 
-    class AuthenticateWithPasskeyScreen(ctx: Context) {
-        val passkeyAlreadyExists by ctx.s(R.string.credential_provider_passkey_already_exists)
-        val passkeyAlreadyExistsExplanation by ctx.s(R.string.credential_provider_passkey_already_exists_explanation)
-    }
-
     class ManagePasskeysScreen(ctx: Context) {
         val heading by ctx.s(R.string.manage_passkeys_heading)
-        val permanentlyDeletePasskey by ctx.s(R.string.manage_passkeys_permanently_delete_passkey)
+        val actionsSheetEdit by ctx.s(R.string.manage_passkeys_actions_sheet_edit)
+        val actionsSheetDelete by ctx.s(R.string.manage_passkeys_actions_sheet_delete)
+        val actionsSheetDeleteWarning by ctx.s(R.string.manage_passkeys_actions_sheet_delete_warning)
     }
 
     class SettingsScreen(private val ctx: Context) {
@@ -238,6 +238,8 @@ class AppStrings(private val ctx: Context) {
         val passkeyAlreadyExistsExplanation by ctx.s(R.string.credential_provider_passkey_already_exists_explanation)
         val unableToEstablishTrust by ctx.s(R.string.credential_provider_unable_to_establish_trust)
         val unableToEstablishTrustExplanation by ctx.s(R.string.credential_provider_unable_to_establish_trust_explanation)
+        val editPasskeyDisplayName by ctx.s(R.string.credential_provider_edit_passkey_display_name)
+        val passkeyDisplayName by ctx.s(R.string.credential_provider_passkey_display_name)
 
     }
 }

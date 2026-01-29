@@ -27,6 +27,21 @@ fun BottomSheetContextualHeader(
     subheading: String,
     icon: ImageVector,
 ) {
+    BottomSheetContextualHeader(heading, subheading) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun BottomSheetContextualHeader(
+    heading: String,
+    subheading: String,
+    icon: @Composable () -> Unit,
+) {
     Column {
         Surface(
             shape = RoundedCornerShape(ROUNDED_CORNER_SIZE),
@@ -40,11 +55,7 @@ fun BottomSheetContextualHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = PADDING_M, vertical = PADDING_S)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                icon()
                 Spacer(modifier = Modifier.width(SPACING_S))
                 Column {
                     Text(

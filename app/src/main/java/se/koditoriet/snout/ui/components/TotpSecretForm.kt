@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,7 +53,7 @@ import se.koditoriet.snout.vault.TotpAlgorithm
 
 @Composable
 inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
-    padding: PaddingValues,
+    padding: PaddingValues? = null,
     metadata: NewTotpSecret.Metadata? = null,
     hideSecretsFromAccessibility: Boolean,
     crossinline onSave: (T) -> Unit,
@@ -66,11 +67,14 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
         .fillMaxWidth()
         .padding(INPUT_FIELD_PADDING)
 
+    val columnModifier = Modifier
+        .fillMaxWidth()
+        .verticalScroll(rememberScrollState())
+
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(padding)
-            .verticalScroll(rememberScrollState()),
+        modifier = columnModifier
+            .takeIf { padding != null }
+            ?.padding(padding!!) ?: columnModifier,
         verticalArrangement = Arrangement.spacedBy(SPACING_S),
     ) {
         OutlinedTextField(
@@ -79,12 +83,14 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
             onValueChange = { issuer = it },
             label = { Text(formStrings.issuer) },
             isError = issuer.isBlank(),
+            singleLine = true,
         )
         OutlinedTextField(
             modifier = fieldModifier,
             value = account,
             onValueChange = { account = it },
             label = { Text(formStrings.userName) },
+            singleLine = true,
         )
 
         // TODO: this part is _really_ ugly...
@@ -114,6 +120,7 @@ inline fun <reified T : TotpSecretFormResult> TotpSecretForm(
 
         Row(horizontalArrangement = Arrangement.Center, modifier = fieldModifier) {
             Button(
+                modifier = Modifier.fillMaxSize(),
                 enabled = secretDataIsValid && metadataIsValid,
                 onClick = {
                     val metadata = NewTotpSecret.Metadata(
@@ -168,6 +175,7 @@ fun SecretDataPartialForm(
         onValueChange = { onChange(secretDataFormState.copy(secret = it.trim())) },
         label = { Text(screenStrings.secret) },
         isError = !secretDataFormState.secretIsValid,
+        singleLine = true,
         keyboardOptions = KeyboardOptions(
             autoCorrectEnabled = false,
             keyboardType = KeyboardType.Password,
@@ -186,6 +194,7 @@ fun SecretDataPartialForm(
         label = { Text(screenStrings.digits) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         isError = !secretDataFormState.digitsIsValid,
+        singleLine = true,
     )
     OutlinedTextField(
         modifier = fieldModifier,
@@ -194,6 +203,7 @@ fun SecretDataPartialForm(
         label = { Text(screenStrings.period) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         isError = !secretDataFormState.periodIsValid,
+        singleLine = true,
     )
     Dropdown<TotpAlgorithm>(
         label = screenStrings.algorithm,

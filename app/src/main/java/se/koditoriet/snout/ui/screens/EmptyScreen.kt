@@ -12,18 +12,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import se.koditoriet.snout.R
+import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 
 @Composable
-fun EmptyScreen(content: @Composable () -> Unit = {}) {
+fun EmptyScreen(splashIcon: Boolean = false, content: @Composable () -> Unit = {}) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        SplashIcon()
+        if (splashIcon) {
+            SplashIcon()
+        }
         content()
     }
 }
@@ -32,7 +36,11 @@ fun EmptyScreen(content: @Composable () -> Unit = {}) {
 private fun SplashIcon() {
     Box(
         modifier = Modifier
-            .size(160.dp)
+            .graphicsLayer(
+                compositingStrategy = CompositingStrategy.Offscreen,
+                alpha = 0.2f,
+            )
+            .size(BACKGROUND_ICON_SIZE)
             .clip(CircleShape)
             .background(colorResource(R.color.ic_launcher_background)),
         contentAlignment = Alignment.Center,

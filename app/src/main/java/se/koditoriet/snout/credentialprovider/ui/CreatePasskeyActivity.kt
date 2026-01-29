@@ -5,35 +5,44 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CreatePublicKeyCredentialResponse
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.first
 import se.koditoriet.snout.BiometricPromptAuthenticator
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.credentialprovider.originIsValid
 import se.koditoriet.snout.credentialprovider.rpIsValid
 import se.koditoriet.snout.credentialprovider.webauthn.AuthDataFlag
-import se.koditoriet.snout.credentialprovider.webauthn.PublicKeyCredentialCreationOptions
 import se.koditoriet.snout.credentialprovider.webauthn.CreateResponse
+import se.koditoriet.snout.credentialprovider.webauthn.PublicKeyCredentialCreationOptions
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.ui.components.InformationDialog
+import se.koditoriet.snout.ui.components.PasskeyIcon
+import se.koditoriet.snout.ui.components.sheet.BottomSheet
+import se.koditoriet.snout.ui.onIOThread
 import se.koditoriet.snout.ui.screens.EmptyScreen
+import se.koditoriet.snout.ui.sheets.EditPasskeyNameSheet
+import se.koditoriet.snout.ui.snoutApp
+import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.CredentialId
+import se.koditoriet.snout.vault.Passkey
 import se.koditoriet.snout.viewmodel.SnoutViewModel
 
 private val TAG = "CreatePasskeyActivity"
 
 class CreatePasskeyActivity : FragmentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val screenStrings = appStrings.credentialProvider
@@ -42,49 +51,53 @@ class CreatePasskeyActivity : FragmentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            var passkeyAlreadyExists by remember { mutableStateOf(false) }
-            var invalidRequestInfo by remember { mutableStateOf(false) }
+            Log.d(TAG, "Starting activity")
             val viewModel = viewModel<SnoutViewModel>()
+            val passkeys by viewModel.passkeys.collectAsState(emptyList())
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
             LaunchedEffect(Unit) {
-                if (!requestInfo.isValid) {
-                    invalidRequestInfo = true
-                    return@LaunchedEffect
-                }
-
                 try {
                     viewModel.unlockVault(authFactory)
                 } catch (_: AuthenticationFailedException) {
                     finishWithResponse(null)
                     return@LaunchedEffect
                 }
-
-                val response = createPasskey(viewModel, requestInfo)
-                if (response != null) {
-                    Log.i(
-                        TAG,
-                        "Created passkey with credential id ${response.credentialId}"
-                    )
-                    finishWithResponse(response)
-                } else {
-                    passkeyAlreadyExists = true
-                }
             }
 
             SnoutTheme {
                 EmptyScreen {
-                    if (passkeyAlreadyExists) {
+                    PasskeyIcon(Modifier.size(BACKGROUND_ICON_SIZE))
+
+                    if (credentialAlreadyExists(passkeys, requestInfo)) {
                         InformationDialog(
                             title = screenStrings.passkeyAlreadyExists,
                             text = screenStrings.passkeyAlreadyExistsExplanation,
                             onDismiss = { finishWithResponse(null) }
                         )
                     }
-                    if (invalidRequestInfo) {
+                    if (!requestInfo.isValid) {
                         InformationDialog(
                             title = screenStrings.unableToEstablishTrust,
                             text = screenStrings.unableToEstablishTrustExplanation,
                             onDismiss = { finishWithResponse(null) }
+                        )
+                    }
+                    BottomSheet(
+                        hideSheet = { finishWithResponse(null) },
+                        sheetState = sheetState,
+                        sheetViewState = Unit,
+                    ) { _ ->
+                        EditPasskeyNameSheet(
+                            prefilledDisplayName = requestInfo.requestJson.rp.id,
+                            onSave = onIOThread { displayName ->
+                                val response = createPasskey(viewModel, displayName, requestInfo)
+                                Log.i(
+                                    TAG,
+                                    "Created passkey with credential id ${response.credentialId}"
+                                )
+                                finishWithResponse(response)
+                            }
                         )
                     }
                 }
@@ -92,28 +105,27 @@ class CreatePasskeyActivity : FragmentActivity() {
         }
     }
 
-    private suspend fun createPasskey(viewModel: SnoutViewModel, requestInfo: CreateRequestInfo): CreateResponse? {
+    private fun credentialAlreadyExists(passkeys: List<Passkey>, requestInfo: CreateRequestInfo): Boolean {
         val excludeCredentials = requestInfo.requestJson.excludeCredentials.map { CredentialId(it.id) }
-        val excludedCredentials = viewModel.passkeys.first().filter {
+        val excludedCredentials = passkeys.filter {
             it.credentialId in excludeCredentials
         }
 
-        if (excludedCredentials.isNotEmpty()) {
-            // If any credential in excludeCredentials is already in the vault, we already have a credential that is
-            // recognized by both us and the RP, so we should not create a new one.
-            val excluded = excludedCredentials.joinToString(", ") { it.toString() }
-            Log.i(
-                TAG,
-                "Existing passkeys with credential ids in excludeCredentials: $excluded",
-            )
-            return null
-        }
+        // If any credential in excludeCredentials is already in the vault, we already have a credential that is
+        // recognized by both us and the RP, so we should not create a new one.
+        return excludedCredentials.isNotEmpty()
+    }
 
+    private suspend fun createPasskey(
+        viewModel: SnoutViewModel,
+        displayName: String,
+        requestInfo: CreateRequestInfo,
+    ): CreateResponse {
         val (credentialId, pubkey) = viewModel.addPasskey(
             rpId = requestInfo.requestJson.rp.id,
             userId = requestInfo.requestJson.user.id.toByteArray(),
             userName = requestInfo.requestJson.user.displayName,
-            displayName = requestInfo.requestJson.user.displayName,
+            displayName = displayName,
         )
 
         return CreateResponse(
@@ -138,6 +150,8 @@ class CreatePasskeyActivity : FragmentActivity() {
                 setResult(RESULT_CANCELED, this)
             }
         }
+        snoutApp.startIdleTimeout()
+        Log.d(TAG, "Finishing activity")
         finish()
     }
 }

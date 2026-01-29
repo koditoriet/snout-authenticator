@@ -5,24 +5,19 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.Config
 import se.koditoriet.snout.Config.BackupKeys
+import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.SortMode
 import se.koditoriet.snout.appStrings
-import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.crypto.AuthenticatorFactory
+import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.crypto.EncryptedData
 import se.koditoriet.snout.crypto.KeySecurityLevel
 import se.koditoriet.snout.synchronization.Sync
@@ -31,14 +26,12 @@ import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.Passkey
 import se.koditoriet.snout.vault.TotpAlgorithm
 import se.koditoriet.snout.vault.TotpSecret
-import se.koditoriet.snout.vault.UnknownExportFormatException
 import se.koditoriet.snout.vault.Vault
-import java.lang.Exception
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "SnoutViewModel"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
     private val vault: Sync<Vault>
         get() = (app as SnoutApp).vault
@@ -47,24 +40,9 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
     val config: Flow<Config>
         get() = configDatastore.data
 
-    private val _vaultState = MutableStateFlow(vault.unsafeReadOnly { state })
-    val vaultState = _vaultState.asStateFlow()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val secrets = vaultState.flatMapLatest { state ->
-        when (state) {
-            Vault.State.Uninitialized, Vault.State.Locked -> flowOf(emptyList())
-            Vault.State.Unlocked -> vault.unsafeReadOnly { observeTotpSecrets() }
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val passkeys = vaultState.flatMapLatest { state ->
-        when (state) {
-            Vault.State.Uninitialized, Vault.State.Locked -> flowOf(emptyList())
-            Vault.State.Unlocked -> vault.unsafeReadOnly { observePasskeys() }
-        }
-    }
+    val vaultState = vault.unsafeReadOnly { observeState() }
+    val secrets = vault.unsafeReadOnly { observeTotpSecrets() }
+    val passkeys = vault.unsafeReadOnly { observePasskeys() }
 
     private val strings = app.appStrings.viewModel
 
@@ -80,20 +58,17 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
                 backupKeys = backupKeys?.let(BackupKeys::fromVaultBackupKeys),
             )
         }
-        _vaultState.value = state
     }
 
     suspend fun wipeVault() = vault.withLock {
         Log.i(TAG, "Wiping vault")
         wipe()
         configDatastore.updateData { Config.default }
-        _vaultState.value = state
     }
 
     suspend fun lockVault() = vault.withLock {
         Log.i(TAG, "Locking vault")
         lock()
-        _vaultState.value = state
     }
 
     suspend fun setSortMode(sortMode: SortMode) = vault.withLock {
@@ -101,6 +76,9 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun unlockVault(authFactory: AuthenticatorFactory) = vault.withLock {
+        if (state == Vault.State.Unlocked) {
+            return@withLock
+        }
         Log.i(TAG, "Attempting to unlock vault")
         val config = config.first()
         check(config.encryptedDbKey != null)
@@ -111,7 +89,6 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
             unlock(it, config.encryptedDbKey, config.backupKeys?.toVaultBackupKeys())
         }
         Log.i(TAG, "Vault unlocked")
-        _vaultState.value = state
     }
 
     suspend fun exportVault(uri: Uri): Unit = vault.withLock {
@@ -165,8 +142,6 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
             // TODO: inform the user what happened
             Log.e(TAG, "Unable to restore backup", e)
             wipe()
-        } finally {
-            _vaultState.value = state
         }
     }
 
@@ -209,6 +184,10 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
 
     suspend fun deletePasskey(credentialId: CredentialId) = vault.withLock {
         deletePasskey(credentialId)
+    }
+
+    suspend fun updatePasskey(passkey: Passkey) = vault.withLock {
+        updatePasskey(passkey)
     }
 
     suspend fun addPasskey(rpId: String, userId: ByteArray, userName: String, displayName: String) = vault.withLock {
