@@ -41,12 +41,12 @@ import se.koditoriet.snout.ui.ignoreAuthFailure
 import se.koditoriet.snout.ui.onIOThread
 import se.koditoriet.snout.ui.screens.LoadingScreen
 import se.koditoriet.snout.ui.screens.LockedScreen
+import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.SettingsScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByQrScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByTextScreen
 import se.koditoriet.snout.ui.screens.secrets.EditSecretMetadataScreen
 import se.koditoriet.snout.ui.screens.secrets.ListSecretsScreen
-import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSeedScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSetupScreen
 import se.koditoriet.snout.ui.screens.setup.RestoreBackupScreen
@@ -265,6 +265,7 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
                     onAddSecretByQR = { viewState = ViewState.ScanSecretQrCode },
                     onSortModeChange = onIOThread { mode -> viewModel.setSortMode(mode) },
                     onEditSecretMetadata = { viewState = ViewState.EditSecretMetadata(it) },
+                    onUpdateSecret = onIOThread { updatedSecret -> viewModel.updateTotpSecret(updatedSecret) },
                     onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret.id) },
                     onImportFile = onIOThread { uri -> viewModel.importFromFile(uri) },
                 )

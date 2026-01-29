@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,6 +102,7 @@ fun ListSecretsScreen(
     onImportFile: (Uri) -> Unit,
     onSortModeChange: (SortMode) -> Unit,
     onEditSecretMetadata: (TotpSecret) -> Unit,
+    onUpdateSecret: (TotpSecret) -> Unit,
     onDeleteSecret: (TotpSecret) -> Unit,
     clock: Clock = Clock.System,
 ) {
@@ -146,7 +149,8 @@ fun ListSecretsScreen(
                 hideSecretsFromAccessibility = hideSecretsFromAccessibility,
                 clock = clock,
                 getTotpCodes = getTotpCodes,
-                onLongPressSecret = { sheetViewState = SheetViewState.SecretActions(it) }
+                onLongPressSecret = { sheetViewState = SheetViewState.SecretActions(it) },
+                onUpdateSecret = onUpdateSecret
             )
         }
 
@@ -204,13 +208,17 @@ private fun SecretList(
     clock: Clock,
     getTotpCodes: suspend (TotpSecret) -> List<String>,
     onLongPressSecret: (TotpSecret) -> Unit,
+    onUpdateSecret: (TotpSecret) -> Unit
 ) {
     val isManuallySortable = filterQuery.isEmpty() && sortMode == SortMode.Manual
     val lazyListState = rememberLazyListState()
-    var reorderableSecrets by remember(secrets) { mutableStateOf(secrets.toList()) }
+    var reorderableSecrets by remember(secrets.toMutableList()) { mutableStateOf(secrets.toList()) }
+    var newIndex by remember { mutableIntStateOf(0) } // So far, this is the most reliable way of getting the new index.
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         reorderableSecrets = reorderableSecrets.toMutableList().apply {
             add(to.index, removeAt(from.index))
+            Log.d("Move", "Moved item from ${from.index} to ${to.index}")
+            newIndex = to.index
         }
     }
     LazyColumn(
@@ -252,12 +260,47 @@ private fun SecretList(
                         clock = clock,
                         getTotpCodes = getTotpCodes,
                         onLongPressSecret = onLongPressSecret,
-                        dragHandle = { DragHandle(reorderableScope, isManuallySortable) }
+                        dragHandle = {
+                            DragHandle(
+                                scope = reorderableScope,
+                                showDragHandle = isManuallySortable,
+                                onDragStopped = {
+                                    Log.d(
+                                        "Moving item", "Moved item ${item.issuer}" +
+                                                " between ${reorderableSecrets.getOrNull(newIndex - 1)?.issuer ?: "[N/A]"}" +
+                                                " and ${reorderableSecrets.getOrNull(newIndex + 1)?.issuer ?: "[N/A]"}"
+                                    )
+                                    Log.d("Secret sort order", "Old secret sort order: ${item.sortOrder}")
+                                    val newSortOrder = getNewSortOrder(newIndex, reorderableSecrets)
+                                    val updatedSecret = item.copy(sortOrder = newSortOrder)
+                                    Log.d("Secret sort order", "New secret sort order: ${updatedSecret.sortOrder}")
+
+                                    onUpdateSecret(updatedSecret)
+
+                                    Log.d("Reorderable secret list", "Secret list: ${reorderableSecrets.map(TotpSecret::issuer).toList()}")
+                                    Log.d("Secret list", "Secret list: ${secrets.map(TotpSecret::issuer).toList()}")
+                                }
+                            )
+                        }
                     )
                 }
             }
         }
     }
+}
+
+private fun getNewSortOrder(
+    newIndex: Int,
+    secretList: List<TotpSecret>
+): Long {
+    val sortOrderOfPrev = secretList.getOrNull(newIndex - 1)?.sortOrder ?: 0
+    val sortOrderOfNext = secretList.getOrNull(newIndex + 1)?.sortOrder ?: Long.MAX_VALUE
+
+    Log.d("New index", "New index: $newIndex")
+    Log.d("Items", "Previous item: ${secretList.getOrNull(newIndex - 1)?.issuer}")
+    Log.d("Items", "Next item: ${secretList.getOrNull(newIndex + 1)?.issuer}")
+    Log.d("Calc sort order", "New calculated sort order: ${sortOrderOfPrev / 2 + sortOrderOfNext / 2}")
+    return sortOrderOfPrev / 2 + sortOrderOfNext / 2
 }
 
 @Composable
@@ -416,7 +459,7 @@ private fun ListRow(
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = totpSecret.account?.let { "(${it})" } ?: "",
+                    text = totpSecret.sortOrder?.let { "(${it})" } ?: "",
                     fontSize = LIST_ITEM_FONT_SIZE,
                     color = MaterialTheme.colorScheme.primaryHint,
                     modifier = Modifier.padding(start = PADDING_S),
@@ -456,10 +499,20 @@ private fun ListRow(
 }
 
 @Composable
-fun DragHandle(scope: ReorderableCollectionItemScope, showDragHandle: Boolean) {
+fun DragHandle(
+    scope: ReorderableCollectionItemScope,
+    showDragHandle: Boolean,
+    onDragStopped: () -> Unit,
+) {
     if (showDragHandle) {
         IconButton(
-            modifier = with(scope) { Modifier.draggableHandle() },
+            modifier = with(scope) {
+                Modifier
+                    .draggableHandle(
+                        onDragStopped = onDragStopped
+                    )
+                    .fillMaxHeight()
+            },
             onClick = {}
         ) {
             Icon(Icons.Rounded.DragHandle, contentDescription = "Reorder")
