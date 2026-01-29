@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-import se.koditoriet.snout.codec.Base64Url
 import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.vault.Passkey
 

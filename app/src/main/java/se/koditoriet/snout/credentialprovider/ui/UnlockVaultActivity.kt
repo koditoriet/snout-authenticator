@@ -9,20 +9,12 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.credentials.GetCredentialResponse
-import androidx.credentials.PublicKeyCredential
 import androidx.credentials.provider.BeginGetCredentialResponse
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import se.koditoriet.snout.BiometricPromptAuthenticator
 import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.credentialprovider.createBeginGetCredentialResponse
-import se.koditoriet.snout.credentialprovider.webauthn.SignedAuthResponse
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.ui.components.PasskeyIcon
 import se.koditoriet.snout.ui.screens.EmptyScreen
@@ -30,7 +22,6 @@ import se.koditoriet.snout.ui.snoutApp
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.viewmodel.SnoutViewModel
-import kotlin.getValue
 
 private const val TAG = "UnlockVaultActivity"
 
@@ -46,7 +37,6 @@ class UnlockVaultActivity : FragmentActivity() {
         setContent {
             LaunchedEffect(Unit) {
                 try {
-                    snoutApp.cancelIdleTimeout()
                     viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@UnlockVaultActivity))
                 } catch (_: AuthenticationFailedException) {
                     finishWithResult(null)
@@ -83,10 +73,8 @@ class UnlockVaultActivity : FragmentActivity() {
                 setResult(RESULT_CANCELED, intent)
             }
         }
-        lifecycleScope.launch {
-            snoutApp.startIdleTimeout()
-            Log.d(TAG, "Finishing activity")
-            finish()
-        }
+        snoutApp.startIdleTimeout()
+        Log.d(TAG, "Finishing activity")
+        finish()
     }
 }

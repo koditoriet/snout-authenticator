@@ -1,7 +1,6 @@
 package se.koditoriet.snout.ui
 
 import se.koditoriet.snout.vault.NewTotpSecret
-import se.koditoriet.snout.vault.TotpSecret
 
 sealed class ViewState(
     val previousViewState: ViewState?,

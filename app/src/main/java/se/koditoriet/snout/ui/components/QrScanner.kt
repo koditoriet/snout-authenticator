@@ -49,7 +49,6 @@ import se.koditoriet.snout.codec.QrCodeReader
 import java.util.concurrent.Executors
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 

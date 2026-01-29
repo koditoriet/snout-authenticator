@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.fragment.fragment.ktx)
+    implementation(libs.androidx.lifecycle.process)
 
     // CBOR
     implementation(libs.com.upokecenter.cbor)

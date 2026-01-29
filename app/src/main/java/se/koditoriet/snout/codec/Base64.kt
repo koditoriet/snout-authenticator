@@ -7,7 +7,6 @@ import se.koditoriet.snout.codec.Base64Url.Companion.toBase64Url
 import se.koditoriet.snout.crypto.ECAlgorithm
 import java.security.KeyFactory
 import java.security.PublicKey
-import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 
 private const val B64URL_FLAGS = Base64.NO_PADDING or Base64.NO_WRAP or Base64.URL_SAFE

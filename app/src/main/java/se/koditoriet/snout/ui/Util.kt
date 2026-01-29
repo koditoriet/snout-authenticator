@@ -2,17 +2,13 @@ package se.koditoriet.snout.ui
 
 import android.app.Activity
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.crypto.AuthenticationFailedException
-import se.koditoriet.snout.vault.Passkey
 
 val ColorScheme.primaryDisabled: Color
     get() = this.onSurface.copy(0.38f)

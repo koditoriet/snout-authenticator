@@ -1,9 +1,5 @@
 package se.koditoriet.snout
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -23,13 +19,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.print.PrintHelper
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.crypto.BackupSeed
@@ -39,19 +30,17 @@ import se.koditoriet.snout.ui.ignoreAuthFailure
 import se.koditoriet.snout.ui.onIOThread
 import se.koditoriet.snout.ui.screens.LoadingScreen
 import se.koditoriet.snout.ui.screens.LockedScreen
+import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.SettingsScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByQrScreen
 import se.koditoriet.snout.ui.screens.secrets.AddSecretByTextScreen
 import se.koditoriet.snout.ui.screens.secrets.ListSecretsScreen
-import se.koditoriet.snout.ui.screens.ManagePasskeysScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSeedScreen
 import se.koditoriet.snout.ui.screens.setup.BackupSetupScreen
 import se.koditoriet.snout.ui.screens.setup.RestoreBackupScreen
-import se.koditoriet.snout.ui.snoutApp
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.Vault
 import se.koditoriet.snout.viewmodel.SnoutViewModel
-import kotlin.time.Duration
 
 private const val TAG = "MainActivity"
 
@@ -59,37 +48,15 @@ class MainActivity : FragmentActivity() {
     private val viewModel: SnoutViewModel by viewModels()
     private var isBackgrounded: Boolean = true
 
-    private val screenOffReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            lifecycleScope.launch {
-                Log.i(TAG, "Screen off detected; locking vault immediately")
-                snoutApp.cancelIdleTimeout()
-                viewModel.lockVault()
-            }
-        }
-    }
-
     private val foregroundObserver = object : DefaultLifecycleObserver {
         override fun onStop(owner: LifecycleOwner) {
             isBackgrounded = true
-            Log.i(TAG, "Lost focus")
-            lifecycleScope.launch {
-                if (viewModel.vaultState.value == Vault.State.Unlocked) {
-                    snoutApp.startIdleTimeout()
-                }
-            }
         }
 
         override fun onStart(owner: LifecycleOwner) {
-            Log.i(TAG, "Got back focus")
-            lifecycleScope.launch {
-                snoutApp.cancelIdleTimeout()
-            }
-
-            if (viewModel.vaultState.value == Vault.State.Locked && isBackgrounded) {
+            if (isBackgrounded) {
                 lifecycleScope.launch {
                     ignoreAuthFailure {
-                        Log.i(TAG, "Vault is locked; initiating unlock")
                         viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@MainActivity))
                     }
                 }
@@ -108,8 +75,7 @@ class MainActivity : FragmentActivity() {
             WindowManager.LayoutParams.FLAG_SECURE,
         )
 
-        Log.i(TAG, "Registering observers")
-        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+        Log.i(TAG, "Registering unlock lifecycle observer")
         lifecycle.addObserver(foregroundObserver)
 
         enableEdgeToEdge()
@@ -117,17 +83,12 @@ class MainActivity : FragmentActivity() {
             MainScreen(viewModel)
         }
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(screenOffReceiver)
-    }
 }
 
 @Composable
 fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
     val totpSecrets by viewModel.secrets.collectAsState(emptyList())
-    val vaultState by viewModel.vaultState.collectAsState()
+    val vaultState by viewModel.vaultState.collectAsState(Vault.State.Uninitialized)
     val config by viewModel.config.collectAsState(Config.default)
     val showLoadingScreen = remember { mutableStateOf(false) }
     var viewState by remember { mutableStateOf<ViewState>(ViewState.LockedScreen) }
@@ -305,44 +266,5 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
                 )
             }
         }
-    }
-}
-
-/**
- * Sets up an action to be executed when a timeout expires.
- * The action can be canceled up until the point where the timeout expires. After that, it's unstoppable.
- */
-class TimeoutJob(
-    private val name: String,
-    private val scope: CoroutineScope,
-    private val onTimeout: suspend () -> Unit,
-) {
-    private var timeoutJob: Job? = null
-    private val mutex = Mutex()
-
-    suspend fun start(timeout: Duration) = mutex.withLock {
-        // Reset timeout if one is already running
-        if (timeoutJob != null) {
-            Log.i(TAG, "Timeout job '$name' already pending; stopping it")
-            timeoutJob!!.cancel()
-        }
-
-        Log.i(TAG, "Executing timeout job '$name' in $timeout")
-        timeoutJob = scope.launch {
-            delay(timeout)
-
-            // If the timeout has already expired, the job is no longer stoppable
-            mutex.withLock {
-                Log.i(TAG, "Timeout expired for job '$name'; executing action")
-                onTimeout()
-                timeoutJob = null
-            }
-        }
-    }
-
-    suspend fun cancel() = mutex.withLock {
-        Log.i(TAG, "Canceling timeout for job '$name'")
-        timeoutJob?.cancel()
-        timeoutJob = null
     }
 }

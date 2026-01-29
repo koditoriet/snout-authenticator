@@ -21,6 +21,7 @@ datastore = "1.2.0"
 biometricKtx = "1.4.0-alpha02"
 credentials = "1.6.0-rc01"
 cbor = "4.5.6"
+lifecycleProcess = "2.10.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ net-zetetic-sqlcipher-android = { group = "net.zetetic", name = "sqlcipher-andro
 org-jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 org-jetbrains-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 com-upokecenter-cbor = { group = "com.upokecenter", name = "cbor", version.ref = "cbor" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
