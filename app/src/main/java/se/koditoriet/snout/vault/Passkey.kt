@@ -5,7 +5,6 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import kotlinx.serialization.Serializable
 import se.koditoriet.snout.codec.Base64Url
-import se.koditoriet.snout.codec.Base64Url.Companion.toBase64Url
 import se.koditoriet.snout.crypto.ECAlgorithm
 import se.koditoriet.snout.crypto.KeyHandle
 
@@ -25,6 +24,13 @@ data class Passkey(
 ) {
     val keyHandle: KeyHandle<ECAlgorithm> by lazy {
         KeyHandle.fromAlias(keyAlias)
+    }
+
+    /**
+     * Pretty-print human-readable description of the passkey
+     */
+    val description: String by lazy {
+        "$rpId \u2022 $userName"
     }
 }
 

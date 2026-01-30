@@ -275,16 +275,16 @@ fun SettingsScreen(
         }
 
         // Overview sheet - security
-        val sheet = sheetViewState
-        if (sheet != null) {
+        sheetViewState?.let { viewState ->
             BottomSheet(
                 hideSheet = { sheetViewState = null },
                 sheetState = sheetState,
                 padding = padding,
+                sheetViewState = viewState,
             ) {
-                when (sheet) {
+                when (viewState) {
                     is SettingsScreenSheetViewState.SecurityReportSheet -> {
-                        SecurityReportSheet(sheet.report)
+                        SecurityReportSheet(viewState.report)
                     }
                 }
             }

@@ -1,11 +1,13 @@
 package se.koditoriet.snout.ui
 
+import android.app.Activity
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 
 val ColorScheme.primaryDisabled: Color
@@ -44,3 +46,6 @@ suspend fun ignoreAuthFailure(action: suspend () -> Unit) {
         // nop!
     }
 }
+
+val Activity.snoutApp: SnoutApp
+    get() = application as SnoutApp

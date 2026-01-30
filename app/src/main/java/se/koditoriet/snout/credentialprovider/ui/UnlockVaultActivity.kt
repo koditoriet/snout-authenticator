@@ -6,33 +6,27 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.credentials.provider.BeginGetCredentialResponse
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.fragment.app.FragmentActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import se.koditoriet.snout.BiometricPromptAuthenticator
 import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.credentialprovider.createBeginGetCredentialResponse
 import se.koditoriet.snout.crypto.AuthenticationFailedException
+import se.koditoriet.snout.ui.components.PasskeyIcon
 import se.koditoriet.snout.ui.screens.EmptyScreen
+import se.koditoriet.snout.ui.snoutApp
+import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.viewmodel.SnoutViewModel
-import kotlin.getValue
 
+private const val TAG = "UnlockVaultActivity"
 
 class UnlockVaultActivity : FragmentActivity() {
-    private val TAG = "UnlockVaultActivity"
     private val viewModel: SnoutViewModel by viewModels()
-
-    private val supervisorJob by lazy {
-        SupervisorJob()
-    }
-
-    private val scope by lazy {
-        CoroutineScope(Dispatchers.IO + supervisorJob)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +39,8 @@ class UnlockVaultActivity : FragmentActivity() {
                 try {
                     viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@UnlockVaultActivity))
                 } catch (_: AuthenticationFailedException) {
-                    Log.i(TAG, "Abort passkey listing")
+                    finishWithResult(null)
+                    return@LaunchedEffect
                 }
 
                 Log.i(TAG, "Vault successfully unlocked, creating credential response")
@@ -57,16 +52,29 @@ class UnlockVaultActivity : FragmentActivity() {
                     )
 
                     Log.i(TAG, "Sending BeginGetCredentialResponse to credential manager")
-                    Intent().apply {
-                        PendingIntentHandler.setBeginGetCredentialResponse(this, response)
-                        setResult(RESULT_OK, this)
-                    }
-                    finish()
+                    finishWithResult(response)
                 }
             }
             SnoutTheme {
-                EmptyScreen()
+                EmptyScreen {
+                    PasskeyIcon(Modifier.size(BACKGROUND_ICON_SIZE))
+                }
             }
         }
+    }
+
+    private fun finishWithResult(response: BeginGetCredentialResponse?) {
+        Intent().let { intent ->
+            if (response != null) {
+                PendingIntentHandler.setBeginGetCredentialResponse(intent, response)
+                setResult(RESULT_OK, intent)
+            } else {
+                Log.i(TAG, "Abort passkey listing")
+                setResult(RESULT_CANCELED, intent)
+            }
+        }
+        snoutApp.startIdleTimeout()
+        Log.d(TAG, "Finishing activity")
+        finish()
     }
 }
