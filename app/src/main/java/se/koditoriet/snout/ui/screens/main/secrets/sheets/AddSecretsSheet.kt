@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.sheets
+package se.koditoriet.snout.ui.screens.main.secrets.sheets
 
 import BottomSheetAction
 import android.content.pm.PackageManager

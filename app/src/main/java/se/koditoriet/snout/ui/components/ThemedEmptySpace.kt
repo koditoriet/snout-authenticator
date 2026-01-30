@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.screens
+package se.koditoriet.snout.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -20,7 +20,7 @@ import se.koditoriet.snout.R
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 
 @Composable
-fun EmptyScreen(splashIcon: Boolean = false, content: @Composable () -> Unit = {}) {
+fun ThemedEmptySpace(splashIcon: Boolean = false, content: @Composable () -> Unit = {}) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,

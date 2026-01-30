@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.sheets
+package se.koditoriet.snout.ui.screens.main.settings.sheets
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width

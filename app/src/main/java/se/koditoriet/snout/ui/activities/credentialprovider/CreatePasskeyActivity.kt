@@ -1,4 +1,4 @@
-package se.koditoriet.snout.credentialprovider.ui
+package se.koditoriet.snout.ui.activities.credentialprovider
 
 import android.content.Intent
 import android.os.Bundle
@@ -30,9 +30,8 @@ import se.koditoriet.snout.ui.components.InformationDialog
 import se.koditoriet.snout.ui.components.PasskeyIcon
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.onIOThread
-import se.koditoriet.snout.ui.screens.EmptyScreen
-import se.koditoriet.snout.ui.sheets.EditPasskeyNameSheet
-import se.koditoriet.snout.ui.snoutApp
+import se.koditoriet.snout.ui.components.ThemedEmptySpace
+import se.koditoriet.snout.ui.screens.main.passkeys.sheets.EditPasskeyNameSheet
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.CredentialId
@@ -66,7 +65,7 @@ class CreatePasskeyActivity : FragmentActivity() {
             }
 
             SnoutTheme {
-                EmptyScreen {
+                ThemedEmptySpace {
                     PasskeyIcon(Modifier.size(BACKGROUND_ICON_SIZE))
 
                     if (credentialAlreadyExists(passkeys, requestInfo)) {
@@ -150,7 +149,6 @@ class CreatePasskeyActivity : FragmentActivity() {
                 setResult(RESULT_CANCELED, this)
             }
         }
-        snoutApp.startIdleTimeout()
         Log.d(TAG, "Finishing activity")
         finish()
     }

@@ -11,7 +11,7 @@ import androidx.credentials.provider.BeginGetPublicKeyCredentialOption
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.CredentialEntry
 import androidx.credentials.provider.PublicKeyCredentialEntry
-import se.koditoriet.snout.credentialprovider.ui.AuthenticateActivity
+import se.koditoriet.snout.ui.activities.credentialprovider.AuthenticateActivity
 import se.koditoriet.snout.credentialprovider.webauthn.PublicKeyCredentialRequestOptions
 import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.vault.Vault

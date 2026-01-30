@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.sheets
+package se.koditoriet.snout.ui.screens.main.passkeys.sheets
 
 import BottomSheetContextualHeader
 import androidx.compose.foundation.layout.Arrangement

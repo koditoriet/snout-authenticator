@@ -16,7 +16,7 @@
         android:theme="@style/Theme.Snout.Splash">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Snout.Splash">
             <intent-filter>
@@ -26,15 +26,15 @@
         </activity>
 
         <activity
-            android:name=".credentialprovider.ui.CreatePasskeyActivity"
+            android:name=".ui.activities.credentialprovider.CreatePasskeyActivity"
             android:theme="@style/Theme.Snout.Splash" />
 
         <activity
-            android:name=".credentialprovider.ui.AuthenticateActivity"
+            android:name=".ui.activities.credentialprovider.AuthenticateActivity"
             android:theme="@style/Theme.Snout.Splash" />
 
         <activity
-            android:name=".credentialprovider.ui.UnlockVaultActivity"
+            android:name=".ui.activities.credentialprovider.ListPasskeysActivity"
             android:theme="@style/Theme.Snout.Splash" />
 
         <service android:name=".credentialprovider.SnoutCredentialProviderService"

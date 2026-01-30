@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.screens
+package se.koditoriet.snout.ui.screens.main.passkeys
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -38,8 +38,8 @@ import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.ui.components.IrrevocableActionConfirmationDialog
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.primaryHint
-import se.koditoriet.snout.ui.sheets.EditPasskeyNameSheet
-import se.koditoriet.snout.ui.sheets.PasskeyActionsSheet
+import se.koditoriet.snout.ui.screens.main.passkeys.sheets.EditPasskeyNameSheet
+import se.koditoriet.snout.ui.screens.main.passkeys.sheets.PasskeyActionsSheet
 import se.koditoriet.snout.ui.theme.LIST_ITEM_FONT_SIZE
 import se.koditoriet.snout.ui.theme.PADDING_M
 import se.koditoriet.snout.ui.theme.PADDING_S

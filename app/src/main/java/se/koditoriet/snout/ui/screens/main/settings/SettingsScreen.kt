@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.screens
+package se.koditoriet.snout.ui.screens.main.settings
 
 import android.net.Uri
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -53,7 +53,7 @@ import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.ui.components.IrrevocableActionConfirmationDialog
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.primaryHint
-import se.koditoriet.snout.ui.sheets.SecurityReportSheet
+import se.koditoriet.snout.ui.screens.main.settings.sheets.SecurityReportSheet
 import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_HEIGHT
 import se.koditoriet.snout.ui.theme.GRACE_PERIOD_INPUT_FIELD_WIDTH
 import se.koditoriet.snout.ui.theme.ROUNDED_CORNER_PADDING

@@ -25,8 +25,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.appStrings
-import se.koditoriet.snout.credentialprovider.ui.CreatePasskeyActivity
-import se.koditoriet.snout.credentialprovider.ui.UnlockVaultActivity
+import se.koditoriet.snout.ui.activities.credentialprovider.CreatePasskeyActivity
+import se.koditoriet.snout.ui.activities.credentialprovider.ListPasskeysActivity
 import se.koditoriet.snout.crypto.DummyAuthenticator
 import se.koditoriet.snout.vault.Vault
 
@@ -66,7 +66,7 @@ class SnoutCredentialProviderService : CredentialProviderService() {
                 when {
                     state == Vault.State.Locked && config.protectAccountList -> {
                         Log.i(TAG, "Vault is locked; presenting unlock option")
-                        val pendingIntent = createPendingIntent(applicationContext, UnlockVaultActivity::class.java)
+                        val pendingIntent = createPendingIntent(applicationContext, ListPasskeysActivity::class.java)
                         val authAction = AuthenticationAction(
                             title = strings.authenticationActionTitle,
                             pendingIntent = pendingIntent,

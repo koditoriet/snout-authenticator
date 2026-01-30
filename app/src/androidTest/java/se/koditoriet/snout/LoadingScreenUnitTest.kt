@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import org.junit.Rule
 import org.junit.Test
-import se.koditoriet.snout.ui.screens.LoadingScreen
+import se.koditoriet.snout.ui.components.LoadingOverlay
 
 class LoadingScreenUnitTest {
     @get:Rule val composeTestRule = createComposeRule()
@@ -15,7 +15,7 @@ class LoadingScreenUnitTest {
         val showLoadingScreen = mutableStateOf(false)
 
         composeTestRule.setContent {
-            LoadingScreen(showLoadingScreen)
+            LoadingOverlay(showLoadingScreen)
         }
         // Invisible per default
         composeTestRule.onNodeWithTag("LoadingScreen").assertDoesNotExist()

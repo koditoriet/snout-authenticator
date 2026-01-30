@@ -1,4 +1,4 @@
-package se.koditoriet.snout.ui.screens.secrets
+package se.koditoriet.snout.ui.screens.main.secrets
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close

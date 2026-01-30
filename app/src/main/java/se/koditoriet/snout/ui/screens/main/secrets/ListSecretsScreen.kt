@@ -1,9 +1,7 @@
-package se.koditoriet.snout.ui.screens.secrets
+package se.koditoriet.snout.ui.screens.main.secrets
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -75,9 +73,9 @@ import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.ignoreAuthFailure
 import se.koditoriet.snout.ui.primaryDisabled
 import se.koditoriet.snout.ui.primaryHint
-import se.koditoriet.snout.ui.sheets.AddSecretsSheet
-import se.koditoriet.snout.ui.sheets.EditSecretMetadataSheet
-import se.koditoriet.snout.ui.sheets.SecretActionsSheet
+import se.koditoriet.snout.ui.screens.main.secrets.sheets.AddSecretsSheet
+import se.koditoriet.snout.ui.screens.main.secrets.sheets.EditSecretMetadataSheet
+import se.koditoriet.snout.ui.screens.main.secrets.sheets.SecretActionsSheet
 import se.koditoriet.snout.ui.theme.LIST_ITEM_FONT_SIZE
 import se.koditoriet.snout.ui.theme.PADDING_M
 import se.koditoriet.snout.ui.theme.PADDING_S
@@ -91,8 +89,6 @@ import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.time.Clock
-
-private const val TAG = "ListSecretsScreen"
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -118,13 +114,6 @@ fun ListSecretsScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var sheetViewState by remember { mutableStateOf<SheetViewState?>(null) }
     var filter by remember { mutableStateOf<String?>(null) }
-
-    LocalActivity.current?.apply {
-        BackHandler {
-            Log.d(TAG, "Back pressed, retiring to background")
-            moveTaskToBack(true)
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -265,7 +254,8 @@ private fun SecretList(
     }
 
     // The parent holds the secret list with SnapshotFlow, and feeds it to this component.
-    // We need to update our reorderableSecrets list when the parent updates, otherwise we only get an empty secrets list to render.
+    // We need to update our reorderableSecrets list when the parent updates, otherwise
+    // we only get an empty secrets list to render.
     LaunchedEffect(secrets) {
         reorderableSecrets.clear()
         reorderableSecrets.addAll(secrets)
@@ -322,7 +312,10 @@ private fun SecretList(
                                 showDragHandle = isManuallySortable,
                                 onDragStopped = {
                                     val updatedSecret = item.copyWithNewSortOrder(reorderableSecrets)
-                                    val shouldReindexAfterUpdate = shouldReindexSecrets(updatedSecret, reorderableSecrets)
+                                    val shouldReindexAfterUpdate = shouldReindexSecrets(
+                                        updatedSecret,
+                                        reorderableSecrets,
+                                    )
                                     onUpdateSecret(updatedSecret)
 
                                     if (shouldReindexAfterUpdate) {
@@ -526,8 +519,8 @@ private fun ListRow(
         if (viewState is ListRowViewState.CodeVisible) {
             CircularProgressIndicator(
                 modifier = Modifier
-                    .padding(PADDING_M)
-                    .size(48.dp),
+                    .padding(PADDING_S)
+                    .size(36.dp),
                 progress = { progress },
             )
         }

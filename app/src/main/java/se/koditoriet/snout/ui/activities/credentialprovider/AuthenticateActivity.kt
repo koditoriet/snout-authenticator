@@ -1,4 +1,4 @@
-package se.koditoriet.snout.credentialprovider.ui
+package se.koditoriet.snout.ui.activities.credentialprovider
 
 import android.content.Intent
 import android.os.Bundle
@@ -31,8 +31,7 @@ import se.koditoriet.snout.credentialprovider.webauthn.SignedAuthResponse
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.ui.components.InformationDialog
 import se.koditoriet.snout.ui.components.PasskeyIcon
-import se.koditoriet.snout.ui.screens.EmptyScreen
-import se.koditoriet.snout.ui.snoutApp
+import se.koditoriet.snout.ui.components.ThemedEmptySpace
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.CredentialId
@@ -91,7 +90,7 @@ class AuthenticateActivity : FragmentActivity() {
             }
 
             SnoutTheme {
-                EmptyScreen {
+                ThemedEmptySpace {
                     PasskeyIcon(Modifier.size(BACKGROUND_ICON_SIZE))
                 }
 
@@ -120,7 +119,6 @@ class AuthenticateActivity : FragmentActivity() {
                 setResult(RESULT_CANCELED, intent)
             }
         }
-        snoutApp.startIdleTimeout()
         Log.d(TAG, "Finishing activity")
         finish()
     }

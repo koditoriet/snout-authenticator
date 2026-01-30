@@ -1,4 +1,4 @@
-package se.koditoriet.snout.credentialprovider.ui
+package se.koditoriet.snout.ui.activities.credentialprovider
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,15 +17,14 @@ import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.credentialprovider.createBeginGetCredentialResponse
 import se.koditoriet.snout.crypto.AuthenticationFailedException
 import se.koditoriet.snout.ui.components.PasskeyIcon
-import se.koditoriet.snout.ui.screens.EmptyScreen
-import se.koditoriet.snout.ui.snoutApp
+import se.koditoriet.snout.ui.components.ThemedEmptySpace
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.viewmodel.SnoutViewModel
 
 private const val TAG = "UnlockVaultActivity"
 
-class UnlockVaultActivity : FragmentActivity() {
+class ListPasskeysActivity : FragmentActivity() {
     private val viewModel: SnoutViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +36,7 @@ class UnlockVaultActivity : FragmentActivity() {
         setContent {
             LaunchedEffect(Unit) {
                 try {
-                    viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@UnlockVaultActivity))
+                    viewModel.unlockVault(BiometricPromptAuthenticator.Factory(this@ListPasskeysActivity))
                 } catch (_: AuthenticationFailedException) {
                     finishWithResult(null)
                     return@LaunchedEffect
@@ -56,7 +55,7 @@ class UnlockVaultActivity : FragmentActivity() {
                 }
             }
             SnoutTheme {
-                EmptyScreen {
+                ThemedEmptySpace {
                     PasskeyIcon(Modifier.size(BACKGROUND_ICON_SIZE))
                 }
             }
@@ -73,7 +72,6 @@ class UnlockVaultActivity : FragmentActivity() {
                 setResult(RESULT_CANCELED, intent)
             }
         }
-        snoutApp.startIdleTimeout()
         Log.d(TAG, "Finishing activity")
         finish()
     }
