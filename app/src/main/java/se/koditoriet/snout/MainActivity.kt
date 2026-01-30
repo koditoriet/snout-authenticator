@@ -98,10 +98,9 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
 
     LaunchedEffect(config.screenSecurityEnabled) {
         if (config.screenSecurityEnabled) {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE,
-            )
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 
