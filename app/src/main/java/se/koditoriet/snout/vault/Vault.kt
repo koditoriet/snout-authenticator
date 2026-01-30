@@ -6,17 +6,17 @@ import se.koditoriet.snout.DbKey
 import se.koditoriet.snout.codec.Base64Url.Companion.toBase64Url
 import se.koditoriet.snout.codec.base32Decode
 import se.koditoriet.snout.codec.toBase64Url
-import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.crypto.Authenticator
-import se.koditoriet.snout.crypto.EncryptedData
-import se.koditoriet.snout.crypto.HmacAlgorithm
-import se.koditoriet.snout.crypto.generateTotpCode
-import se.koditoriet.snout.crypto.KeyHandle
-import se.koditoriet.snout.crypto.KeyIdentifier
+import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.crypto.Cryptographer
 import se.koditoriet.snout.crypto.DecryptionContext
 import se.koditoriet.snout.crypto.DummyAuthenticator
+import se.koditoriet.snout.crypto.EncryptedData
 import se.koditoriet.snout.crypto.EncryptionAlgorithm
+import se.koditoriet.snout.crypto.HmacAlgorithm
+import se.koditoriet.snout.crypto.KeyHandle
+import se.koditoriet.snout.crypto.KeyIdentifier
+import se.koditoriet.snout.crypto.generateTotpCode
 import se.koditoriet.snout.repository.Passkeys
 import se.koditoriet.snout.repository.TotpSecrets
 import se.koditoriet.snout.repository.VaultRepository
@@ -175,6 +175,11 @@ class Vault(
         val secret = secrets.get(id)
         cryptographer.deleteKey(secret.keyHandle)
         secrets.delete(id)
+    }
+
+    suspend fun reindexSecrets() = withTotpSecretRepository { secrets ->
+        Log.i(TAG, "Reindexing TOTP secrets")
+        secrets.reindexSortOrder()
     }
 
     fun observeTotpSecrets(): Flow<List<TotpSecret>> {

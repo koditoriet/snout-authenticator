@@ -22,7 +22,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.print.PrintHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -267,6 +266,7 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
                     onEditSecretMetadata = { viewState = ViewState.EditSecretMetadata(it) },
                     onUpdateSecret = onIOThread { updatedSecret -> viewModel.updateTotpSecret(updatedSecret) },
                     onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret.id) },
+                    onReindexSecrets = onIOThread { viewModel.reindexTotpSecrets() },
                     onImportFile = onIOThread { uri -> viewModel.importFromFile(uri) },
                 )
             }

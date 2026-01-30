@@ -103,6 +103,7 @@ fun ListSecretsScreen(
     onEditSecretMetadata: (TotpSecret) -> Unit,
     onUpdateSecret: (TotpSecret) -> Unit,
     onDeleteSecret: (TotpSecret) -> Unit,
+    onReindexSecrets: () -> Unit,
     clock: Clock = Clock.System,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -149,7 +150,8 @@ fun ListSecretsScreen(
                 clock = clock,
                 getTotpCodes = getTotpCodes,
                 onLongPressSecret = { sheetViewState = SheetViewState.SecretActions(it) },
-                onUpdateSecret = onUpdateSecret
+                onUpdateSecret = onUpdateSecret,
+                onReindexSecrets = onReindexSecrets
             )
         }
 
@@ -207,7 +209,8 @@ private fun SecretList(
     clock: Clock,
     getTotpCodes: suspend (TotpSecret) -> List<String>,
     onLongPressSecret: (TotpSecret) -> Unit,
-    onUpdateSecret: (TotpSecret) -> Unit
+    onUpdateSecret: (TotpSecret) -> Unit,
+    onReindexSecrets: () -> Unit
 ) {
     val isManuallySortable = filterQuery.isEmpty() && sortMode == SortMode.Manual
     val reorderableSecrets = remember {
@@ -270,7 +273,15 @@ private fun SecretList(
                             DragHandle(
                                 scope = reorderableScope,
                                 showDragHandle = isManuallySortable,
-                                onDragStopped = { onUpdateSecret(item.copyWithNewSortOrder(reorderableSecrets)) }
+                                onDragStopped = {
+                                    val updatedSecret = item.copyWithNewSortOrder(reorderableSecrets)
+                                    val shouldReindexAfterUpdate = shouldReindexSecrets(updatedSecret, reorderableSecrets)
+                                    onUpdateSecret(updatedSecret)
+
+                                    if (shouldReindexAfterUpdate) {
+                                        onReindexSecrets()
+                                    }
+                                }
                             )
                         }
                     )
@@ -500,6 +511,13 @@ private fun TotpSecret.copyWithNewSortOrder(secretList: List<TotpSecret>): TotpS
     val sortOrderOfPrev = secretList.getOrNull(secretIndex - 1)?.sortOrder ?: 0
     val sortOrderOfNext = secretList.getOrNull(secretIndex + 1)?.sortOrder ?: Long.MAX_VALUE
     return this.copy(sortOrder = sortOrderOfPrev / 2 + sortOrderOfNext / 2)
+}
+
+private fun shouldReindexSecrets(lastMovedSecret: TotpSecret, secretList: List<TotpSecret>): Boolean {
+    val indexOfLastMovedSecret = secretList.indexOfFirst { it.id == lastMovedSecret.id }
+    val sortOrderOfPrev = secretList.getOrNull(indexOfLastMovedSecret - 1)?.sortOrder ?: 0
+    val sortOrderOfNext = secretList.getOrNull(indexOfLastMovedSecret + 1)?.sortOrder ?: Long.MAX_VALUE
+    return lastMovedSecret.sortOrder == sortOrderOfPrev + 1 || lastMovedSecret.sortOrder == sortOrderOfNext - 1
 }
 
 private sealed interface ListRowViewState {

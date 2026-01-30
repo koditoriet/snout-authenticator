@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,13 +15,13 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.Config
 import se.koditoriet.snout.Config.BackupKeys
+import se.koditoriet.snout.SnoutApp
 import se.koditoriet.snout.SortMode
 import se.koditoriet.snout.appStrings
-import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.crypto.AuthenticatorFactory
+import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.crypto.EncryptedData
 import se.koditoriet.snout.crypto.KeySecurityLevel
 import se.koditoriet.snout.synchronization.Sync
@@ -31,11 +30,8 @@ import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.Passkey
 import se.koditoriet.snout.vault.TotpAlgorithm
 import se.koditoriet.snout.vault.TotpSecret
-import se.koditoriet.snout.vault.UnknownExportFormatException
 import se.koditoriet.snout.vault.Vault
-import java.lang.Exception
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "SnoutViewModel"
 
@@ -183,6 +179,11 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
     suspend fun deleteTotpSecret(id: TotpSecret.Id) = vault.withLock {
         Log.d(TAG, "Deleting TOTP secret with id $id")
         deleteSecret(id)
+    }
+
+    suspend fun reindexTotpSecrets() = vault.withLock {
+        Log.d(TAG, "Reindexing TOTP secrets")
+        reindexSecrets()
     }
 
     suspend fun getTotpCodes(
