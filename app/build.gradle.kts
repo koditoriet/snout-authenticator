@@ -113,6 +113,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
 
+    // Reorderable for list ordering
+    implementation(libs.reorderable)
+
     // Test deps
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

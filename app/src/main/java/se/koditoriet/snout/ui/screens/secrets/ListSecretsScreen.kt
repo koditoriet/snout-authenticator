@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -27,6 +30,7 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -36,6 +40,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -43,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,6 +87,9 @@ import se.koditoriet.snout.ui.theme.SECRET_FONT_SIZE
 import se.koditoriet.snout.ui.theme.SPACING_L
 import se.koditoriet.snout.vault.NewTotpSecret
 import se.koditoriet.snout.vault.TotpSecret
+import sh.calvin.reorderable.ReorderableCollectionItemScope
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.time.Clock
 
 private const val TAG = "ListSecretsScreen"
@@ -101,6 +110,7 @@ fun ListSecretsScreen(
     onSortModeChange: (SortMode) -> Unit,
     onUpdateSecret: (TotpSecret) -> Unit,
     onDeleteSecret: (TotpSecret) -> Unit,
+    onReindexSecrets: () -> Unit,
     clock: Clock = Clock.System,
 ) {
     val screenStrings = appStrings.secretsScreen
@@ -155,7 +165,9 @@ fun ListSecretsScreen(
                 hideSecretsFromAccessibility = hideSecretsFromAccessibility,
                 clock = clock,
                 getTotpCodes = getTotpCodes,
-                onLongPressSecret = { sheetViewState = SheetViewState.SecretActions(it) }
+                onLongPressSecret = { sheetViewState = SheetViewState.SecretActions(it) },
+                onUpdateSecret = onUpdateSecret,
+                onReindexSecrets = onReindexSecrets
             )
         }
 
@@ -197,6 +209,7 @@ fun ListSecretsScreen(
                             }
                         )
                     }
+
                     is SheetViewState.SecretActions -> {
                         SecretActionsSheet(
                             totpSecret = state.secret,
@@ -243,8 +256,29 @@ private fun SecretList(
     clock: Clock,
     getTotpCodes: suspend (TotpSecret) -> List<String>,
     onLongPressSecret: (TotpSecret) -> Unit,
+    onUpdateSecret: (TotpSecret) -> Unit,
+    onReindexSecrets: () -> Unit
 ) {
+    val isManuallySortable = filterQuery.isEmpty() && sortMode == SortMode.Manual
+    val reorderableSecrets = remember {
+        mutableStateListOf<TotpSecret>().apply { addAll(secrets) }
+    }
+
+    // The parent holds the secret list with SnapshotFlow, and feeds it to this component.
+    // We need to update our reorderableSecrets list when the parent updates, otherwise we only get an empty secrets list to render.
+    LaunchedEffect(secrets) {
+        reorderableSecrets.clear()
+        reorderableSecrets.addAll(secrets)
+    }
+
+    val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        reorderableSecrets.apply {
+            add(to.index, removeAt(from.index))
+        }
+    }
     LazyColumn(
+        state = lazyListState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(PADDING_S)
     ) {
@@ -254,7 +288,7 @@ private fun SecretList(
                     .split(' ')
                     .filter { it.isNotBlank() }
                     .map { it.lowercase() }
-                secrets.filter {
+                reorderableSecrets.filter {
                     filterParts.all { f -> f in it.issuer.lowercase() || f in (it.account?.lowercase() ?: "") }
                 }
             }
@@ -267,15 +301,39 @@ private fun SecretList(
                 compareBy<TotpSecret> { it.issuer.lowercase() }.thenBy { it.account?.lowercase() }
             )
         }
-        items(sortedSecrets) { item ->
-            ListRow(
-                totpSecret = item,
-                selected = item.id == selectedSecret?.id,
-                hideSecretsFromAccessibility = hideSecretsFromAccessibility,
-                clock = clock,
-                getTotpCodes = getTotpCodes,
-                onLongPressSecret = onLongPressSecret,
-            )
+        items(
+            items = if (isManuallySortable) reorderableSecrets else sortedSecrets,
+            key = { it.id.toString() })
+        { item ->
+            ReorderableItem(reorderableLazyListState, key = item.id.toString()) { isDragging ->
+                val reorderableScope = this
+                val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+                Surface(shadowElevation = elevation) {
+                    ListRow(
+                        totpSecret = item,
+                        selected = item.id == selectedSecret?.id,
+                        hideSecretsFromAccessibility = hideSecretsFromAccessibility,
+                        clock = clock,
+                        getTotpCodes = getTotpCodes,
+                        onLongPressSecret = onLongPressSecret,
+                        dragHandle = {
+                            DragHandle(
+                                scope = reorderableScope,
+                                showDragHandle = isManuallySortable,
+                                onDragStopped = {
+                                    val updatedSecret = item.copyWithNewSortOrder(reorderableSecrets)
+                                    val shouldReindexAfterUpdate = shouldReindexSecrets(updatedSecret, reorderableSecrets)
+                                    onUpdateSecret(updatedSecret)
+
+                                    if (shouldReindexAfterUpdate) {
+                                        onReindexSecrets()
+                                    }
+                                }
+                            )
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -368,6 +426,7 @@ private fun ListRow(
     clock: Clock,
     getTotpCodes: suspend (TotpSecret) -> List<String>,
     onLongPressSecret: (TotpSecret) -> Unit,
+    dragHandle: @Composable () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val dots = remember { "\u2022".repeat(totpSecret.digits) }
@@ -424,7 +483,6 @@ private fun ListRow(
             )
             .padding(PADDING_M),
         verticalAlignment = Alignment.CenterVertically,
-
     ) {
         Column(
             modifier = Modifier
@@ -473,7 +531,42 @@ private fun ListRow(
                 progress = { progress },
             )
         }
+        dragHandle()
     }
+}
+
+@Composable
+fun DragHandle(
+    scope: ReorderableCollectionItemScope,
+    showDragHandle: Boolean,
+    onDragStopped: () -> Unit
+) {
+    if (showDragHandle) {
+        IconButton(
+            modifier = with(scope) {
+                Modifier
+                    .draggableHandle(onDragStopped = onDragStopped)
+                    .fillMaxHeight()
+            },
+            onClick = {}
+        ) {
+            Icon(Icons.Rounded.DragHandle, contentDescription = appStrings.generic.dragToChangeOrder)
+        }
+    }
+}
+
+private fun TotpSecret.copyWithNewSortOrder(secretList: List<TotpSecret>): TotpSecret {
+    val secretIndex = secretList.indexOfFirst { it.id == this.id }
+    val sortOrderOfPrev = secretList.getOrNull(secretIndex - 1)?.sortOrder ?: 0
+    val sortOrderOfNext = secretList.getOrNull(secretIndex + 1)?.sortOrder ?: Long.MAX_VALUE
+    return this.copy(sortOrder = sortOrderOfPrev / 2 + sortOrderOfNext / 2)
+}
+
+private fun shouldReindexSecrets(lastMovedSecret: TotpSecret, secretList: List<TotpSecret>): Boolean {
+    val indexOfLastMovedSecret = secretList.indexOfFirst { it.id == lastMovedSecret.id }
+    val sortOrderOfPrev = secretList.getOrNull(indexOfLastMovedSecret - 1)?.sortOrder ?: 0
+    val sortOrderOfNext = secretList.getOrNull(indexOfLastMovedSecret + 1)?.sortOrder ?: Long.MAX_VALUE
+    return lastMovedSecret.sortOrder == sortOrderOfPrev + 1 || lastMovedSecret.sortOrder == sortOrderOfNext - 1
 }
 
 private sealed interface ListRowViewState {

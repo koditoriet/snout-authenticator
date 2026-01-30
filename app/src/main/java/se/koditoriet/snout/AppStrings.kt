@@ -36,6 +36,7 @@ class AppStrings(private val ctx: Context) {
         val keyStorageTee by ctx.s(R.string.generic_key_storage_tee)
         val keyStorageSoftware by ctx.s(R.string.generic_key_storage_software)
         val keyStorageUnknown by ctx.s(R.string.generic_key_storage_unknown)
+        val dragToChangeOrder by ctx.s(R.string.generic_key_drag_to_change_order)
     }
 
     inner class SetupScreen(ctx: Context) {

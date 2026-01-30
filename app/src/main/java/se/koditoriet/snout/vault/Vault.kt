@@ -202,6 +202,11 @@ class Vault(
         secrets.delete(id)
     }
 
+    suspend fun reindexSecrets() = withTotpSecretRepository { secrets ->
+        Log.i(TAG, "Reindexing TOTP secrets")
+        secrets.reindexSortOrder()
+    }
+
     suspend fun getTotpCodes(
         authenticator: Authenticator,
         totpSecret: TotpSecret,

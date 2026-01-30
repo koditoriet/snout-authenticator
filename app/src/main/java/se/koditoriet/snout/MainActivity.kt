@@ -204,6 +204,7 @@ fun MainActivity.MainScreen(viewModel: SnoutViewModel) {
                     onSortModeChange = onIOThread { mode -> viewModel.setSortMode(mode) },
                     onUpdateSecret = onIOThread { secret -> viewModel.updateTotpSecret(secret) },
                     onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret.id) },
+                    onReindexSecrets = onIOThread { viewModel.reindexTotpSecrets() },
                     onImportFile = onIOThread { uri -> viewModel.importFromFile(uri) },
                 )
             }

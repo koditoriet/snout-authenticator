@@ -160,6 +160,11 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
         deleteSecret(id)
     }
 
+    suspend fun reindexTotpSecrets() = vault.withLock {
+        Log.d(TAG, "Reindexing TOTP secrets")
+        reindexSecrets()
+    }
+
     suspend fun getTotpCodes(
         authFactory: AuthenticatorFactory,
         totpSecret: TotpSecret,
