@@ -105,6 +105,11 @@ class Vault(
         it.getAll(rpId)
     }
 
+    suspend fun reindexPasskeys() = withPasskeyRepository { passkeys ->
+        Log.i(TAG, "Reindexing passkeys")
+        passkeys.reindexSortOrder()
+    }
+
     suspend fun addPasskey(
         rpId: String,
         userId: ByteArray,
@@ -364,10 +369,10 @@ class Vault(
         }
 
         if (failedImportedPasskeys > 0) {
-            Log.e(TAG, "Failed to import $failedImportedPasskeys/${passkeys.size} TOTP secrets!")
+            Log.e(TAG, "Failed to import $failedImportedPasskeys/${passkeys.size} passkeys!")
             throw ImportFailedException()
         } else {
-            Log.i(TAG, "Successfully imported ${passkeys.size} TOTP secrets")
+            Log.i(TAG, "Successfully imported ${passkeys.size} passkeys")
         }
     }
 
@@ -414,7 +419,7 @@ class Vault(
         val privateKeyBytes = decrypt(EncryptedData.decode(passkey.encryptedBackupPrivateKey!!))
         val encryptedPrivateKey = encryptBackupSecretIfEnabled(privateKeyBytes)?.encode()
         val newKeyHandle = cryptographer.storePrivateKey(
-            keyIdentifier = passkey.keyHandle.identifier,
+            keyIdentifier = null,
             algorithm = passkey.keyHandle.algorithm,
             allowDeviceCredential = true,
             requiresAuthentication = true,

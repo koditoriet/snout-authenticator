@@ -11,12 +11,13 @@ class AppStrings(private val ctx: Context) {
     val seedInputScreen by lazy { SeedInputScreen(ctx) }
     val lockScreen by lazy { LockScreen(ctx) }
     val secretsScreen by lazy { SecretsScreen(ctx) }
-    val editScreen by lazy { EditScreen(ctx) }
     val addSecretScreens by lazy { AddSecretScreens(ctx) }
     val managePasskeysScreen by lazy { ManagePasskeysScreen(ctx) }
     val settingsScreen by lazy { SettingsScreen(ctx) }
 
     val totpSecretForm by lazy { TotpSecretForm(ctx) }
+
+    val listView by lazy { ListView(ctx) }
 
     val viewModel by lazy { ViewModel(ctx) }
 
@@ -71,7 +72,6 @@ class AppStrings(private val ctx: Context) {
     class SecretsScreen(private val ctx: Context) {
         val addSecret by ctx.s(R.string.secrets_add_secret)
         val filterPlaceholder by ctx.s(R.string.secrets_filter_placeholder)
-        val filterClear by ctx.s(R.string.secrets_filter_clear)
         val lockScreen by ctx.s(R.string.secrets_lock_screen)
         val settings by ctx.s(R.string.secrets_settings)
         val generateOneTimeCode by ctx.s(R.string.secrets_generate_one_time_code)
@@ -87,20 +87,6 @@ class AppStrings(private val ctx: Context) {
         val actionsSheetEdit by ctx.s(R.string.secrets_actions_sheet_edit)
         val actionsSheetDelete by ctx.s(R.string.secrets_actions_sheet_delete)
         val actionsSheetDeleteWarning by ctx.s(R.string.secrets_actions_sheet_delete_warning)
-
-        fun sortAlphabetically(active: Boolean) = when (active) {
-            true -> R.string.secrets_sort_alphabetically_active
-            false -> R.string.secrets_sort_alphabetically_inactive
-        }.let { ctx.getString(it) }
-
-        fun filter(active: Boolean) = when (active) {
-            true -> R.string.secrets_filter_active
-            false -> R.string.secrets_filter_inactive
-        }.let { ctx.getString(it) }
-    }
-
-    class EditScreen(ctx: Context) {
-        val edit by ctx.s(R.string.edit_edit)
     }
 
     class AddSecretScreens(ctx: Context) {
@@ -114,6 +100,7 @@ class AppStrings(private val ctx: Context) {
 
     class ManagePasskeysScreen(ctx: Context) {
         val heading by ctx.s(R.string.manage_passkeys_heading)
+        val filterPlaceholder by ctx.s(R.string.manage_passkeys_filter_placeholder)
         val actionsSheetEdit by ctx.s(R.string.manage_passkeys_actions_sheet_edit)
         val actionsSheetDelete by ctx.s(R.string.manage_passkeys_actions_sheet_delete)
         val actionsSheetDeleteWarning by ctx.s(R.string.manage_passkeys_actions_sheet_delete_warning)
@@ -233,7 +220,7 @@ class AppStrings(private val ctx: Context) {
         }.let { ctx.getString(it) }
     }
 
-    class CredentialProvider(private val ctx: Context) {
+    class CredentialProvider(ctx: Context) {
         val authenticationActionTitle by ctx.s(R.string.credential_provider_authentication_action_title)
         val passkeyAlreadyExists by ctx.s(R.string.credential_provider_passkey_already_exists)
         val passkeyAlreadyExistsExplanation by ctx.s(R.string.credential_provider_passkey_already_exists_explanation)
@@ -241,6 +228,20 @@ class AppStrings(private val ctx: Context) {
         val unableToEstablishTrustExplanation by ctx.s(R.string.credential_provider_unable_to_establish_trust_explanation)
         val editPasskeyDisplayName by ctx.s(R.string.credential_provider_edit_passkey_display_name)
         val passkeyDisplayName by ctx.s(R.string.credential_provider_passkey_display_name)
+    }
+
+    class ListView(private val ctx: Context) {
+        val filterClear by ctx.s(R.string.list_view_filter_clear)
+
+        fun sortAlphabetically(active: Boolean) = when (active) {
+            true -> R.string.list_view_sort_alphabetically_active
+            false -> R.string.list_view_sort_alphabetically_inactive
+        }.let { ctx.getString(it) }
+
+        fun filter(active: Boolean) = when (active) {
+            true -> R.string.list_view_filter_active
+            false -> R.string.list_view_filter_inactive
+        }.let { ctx.getString(it) }
 
     }
 }

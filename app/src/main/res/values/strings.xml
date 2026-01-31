@@ -48,12 +48,7 @@
 
     <!-- List secrets screen -->
     <string name="secrets_add_secret">Add secret</string>
-    <string name="secrets_sort_alphabetically_active">Sort alphabetically (active))</string>
-    <string name="secrets_sort_alphabetically_inactive">Sort alphabetically</string>
-    <string name="secrets_filter_active">Filter (active))</string>
-    <string name="secrets_filter_inactive">Filter</string>
     <string name="secrets_filter_placeholder">Filter accounts</string>
-    <string name="secrets_filter_clear">Clear filter</string>
     <string name="secrets_lock_screen">Lock screen</string>
     <string name="secrets_settings">Settings</string>
     <string name="secrets_generate_one_time_code">Generate one-time code</string>
@@ -81,6 +76,7 @@
 
     <!-- Manage passkeys screen -->
     <string name="manage_passkeys_heading">Manage passkeys</string>
+    <string name="manage_passkeys_filter_placeholder">Filter passkeys</string>
     <string name="manage_passkeys_actions_sheet_edit">Edit metadata</string>
     <string name="manage_passkeys_actions_sheet_delete">Delete passkey</string>
     <string name="manage_passkeys_actions_sheet_delete_warning">The selected passkey will be deleted. If this is your only authentication method for that service, you will effectively lose access to your account.</string>
@@ -174,4 +170,11 @@
     <string name="credential_provider_edit_passkey_display_name">Save Passkey</string>
     <string name="credential_provider_passkey_display_name">Passkey display name</string>
 
+
+    <!-- List view -->
+    <string name="list_view_filter_clear">Clear filter</string>
+    <string name="list_view_sort_alphabetically_active">Sort alphabetically (active))</string>
+    <string name="list_view_sort_alphabetically_inactive">Sort alphabetically</string>
+    <string name="list_view_filter_active">Filter (active))</string>
+    <string name="list_view_filter_inactive">Filter</string>
 </resources>
