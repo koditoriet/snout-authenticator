@@ -33,6 +33,7 @@ fun FragmentActivity.MainScreen() {
     val viewModel = viewModel<SnoutViewModel>()
     val config by viewModel.config.collectAsState(Config.default)
     val totpSecrets by viewModel.secrets.collectAsState(emptyList())
+    val passkeys by viewModel.passkeys.collectAsState(emptyList())
     var viewState by remember { mutableStateOf<ViewState>(ViewState.ListSecrets) }
 
     BackHandler {
@@ -52,7 +53,7 @@ fun FragmentActivity.MainScreen() {
         ViewState.ListSecrets -> {
             ListSecretsScreen(
                 secrets = totpSecrets,
-                sortMode = config.sortMode,
+                sortMode = config.totpSecretSortMode,
                 enableDeveloperFeatures = config.enableDeveloperFeatures,
                 hideSecretsFromAccessibility = config.hideSecretsFromAccessibility,
                 getTotpCodes = { secret -> viewModel.getTotpCodes(authFactory, secret, 2) },
@@ -60,7 +61,7 @@ fun FragmentActivity.MainScreen() {
                 onSettings = { viewState = ViewState.Settings },
                 onAddSecret = { viewState = ViewState.AddSecret(it) },
                 onAddSecretByQR = { viewState = ViewState.ScanSecretQrCode },
-                onSortModeChange = onIOThread { mode -> viewModel.setSortMode(mode) },
+                onSortModeChange = onIOThread { mode -> viewModel.setTotpSecretSortMode(mode) },
                 onUpdateSecret = onIOThread { secret -> viewModel.updateTotpSecret(secret) },
                 onDeleteSecret = onIOThread { secret -> viewModel.deleteTotpSecret(secret.id) },
                 onImportFile = onIOThread { uri -> viewModel.importFromFile(uri) },
@@ -119,9 +120,12 @@ fun FragmentActivity.MainScreen() {
         }
         ViewState.ManagePasskeys -> {
             ManagePasskeysScreen(
-                passkeys = viewModel.passkeys,
+                passkeys = passkeys,
+                sortMode = config.passkeySortMode,
+                onSortModeChange = onIOThread { it -> viewModel.setPasskeySortMode(it) },
                 onUpdatePasskey = onIOThread { it -> viewModel.updatePasskey(it) },
                 onDeletePasskey = onIOThread { it -> viewModel.deletePasskey(it.credentialId) },
+                onReindexPasskeys = onIOThread { viewModel.reindexTotpSecrets() }
             )
         }
     }

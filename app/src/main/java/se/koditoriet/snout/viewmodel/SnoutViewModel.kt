@@ -71,8 +71,12 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
         lock()
     }
 
-    suspend fun setSortMode(sortMode: SortMode) = vault.withLock {
-        configDatastore.updateData { it.copy(sortMode = sortMode) }
+    suspend fun setTotpSecretSortMode(sortMode: SortMode) = vault.withLock {
+        configDatastore.updateData { it.copy(totpSecretSortMode = sortMode) }
+    }
+
+    suspend fun setPasskeySortMode(sortMode: SortMode) = vault.withLock {
+        configDatastore.updateData { it.copy(passkeySortMode = sortMode) }
     }
 
     suspend fun unlockVault(authFactory: AuthenticatorFactory) = vault.withLock {
@@ -161,8 +165,11 @@ class SnoutViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun reindexTotpSecrets() = vault.withLock {
-        Log.d(TAG, "Reindexing TOTP secrets")
         reindexSecrets()
+    }
+
+    suspend fun reindexPasskeys() = vault.withLock {
+        reindexPasskeys()
     }
 
     suspend fun getTotpCodes(
