@@ -75,6 +75,8 @@ class AppStrings(private val ctx: Context) {
         val lockScreen by ctx.s(R.string.secrets_lock_screen)
         val settings by ctx.s(R.string.secrets_settings)
         val generateOneTimeCode by ctx.s(R.string.secrets_generate_one_time_code)
+        val copyCode by ctx.s(R.string.secrets_copy_one_time_code)
+        val codeCopied by ctx.s(R.string.secrets_copied_one_time_code)
 
         val addSecretSheetHeading by ctx.s(R.string.secrets_add_secret_sheet_heading)
         val addSecretSheetDescription by ctx.s(R.string.secrets_add_secret_sheet_description)

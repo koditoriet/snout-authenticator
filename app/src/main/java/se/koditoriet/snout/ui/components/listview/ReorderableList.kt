@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import se.koditoriet.snout.AppStrings
 import se.koditoriet.snout.SortMode
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.ui.theme.PADDING_M
@@ -44,8 +43,8 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 interface ReorderableListItem {
     val key: String
     val sortOrder: Long
-    fun onClickLabel(appStrings: AppStrings): String
-    fun onLongClickLabel(appStrings: AppStrings): String
+    val onClickLabel: String
+    val onLongClickLabel: String
     fun filterPredicate(filter: String): Boolean
     fun onUpdateSortOrder(sortOrder: Long)
     fun onClick()
@@ -171,9 +170,9 @@ private fun <T : ReorderableListItem> ListRow(
             .background(backgroundColor)
             .combinedClickable(
                 onClick = { item.onClick() },
-                onClickLabel = item.onClickLabel(appStrings),
+                onClickLabel = item.onClickLabel,
                 onLongClick = { item.onLongClick() },
-                onLongClickLabel = item.onLongClickLabel(appStrings),
+                onLongClickLabel = item.onLongClickLabel,
             )
             .padding(PADDING_M),
         verticalAlignment = Alignment.CenterVertically,
@@ -198,7 +197,10 @@ private fun DragHandle(
             },
             onClick = {}
         ) {
-            Icon(Icons.Rounded.DragHandle, contentDescription = appStrings.generic.dragToChangeOrder)
+            Icon(
+                imageVector = Icons.Rounded.DragHandle,
+                contentDescription = appStrings.generic.dragToChangeOrder,
+            )
         }
     }
 }

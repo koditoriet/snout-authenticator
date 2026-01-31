@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import se.koditoriet.snout.AppStrings
 import se.koditoriet.snout.SortMode
@@ -46,7 +47,8 @@ fun ManagePasskeysScreen(
     onDeletePasskey: (Passkey) -> Unit,
     onReindexPasskeys: () -> Unit,
 ) {
-    val screenStrings = appStrings.managePasskeysScreen
+    val appStrings = LocalContext.current.let { remember(it) { it.appStrings } }
+    val screenStrings = remember(appStrings) { appStrings.managePasskeysScreen }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     var sheetViewState by remember { mutableStateOf<SheetViewState?>(null) }
     var confirmDeletePasskey by remember { mutableStateOf<Passkey?>(null) }
@@ -56,6 +58,7 @@ fun ManagePasskeysScreen(
         PasskeyListItem(
             passkey = passkey,
             onUpdatePasskey = onUpdatePasskey,
+            appStrings = appStrings,
             onLongClickPasskey = { sheetViewState = SheetViewState.Actions(it) },
         )
     }
@@ -147,6 +150,7 @@ fun ManagePasskeysScreen(
 
 private class PasskeyListItem(
     val passkey: Passkey,
+    private val appStrings: AppStrings,
     private val onUpdatePasskey: (Passkey) -> Unit,
     private val onLongClickPasskey: (PasskeyListItem) -> Unit,
 ) : ReorderableListItem {
@@ -156,10 +160,11 @@ private class PasskeyListItem(
     override val sortOrder: Long
         get() = passkey.sortOrder
 
-    override fun onClickLabel(appStrings: AppStrings): String = ""
+    override val onClickLabel: String
+        get() = ""
 
-    override fun onLongClickLabel(appStrings: AppStrings): String =
-        appStrings.generic.selectItem
+    override val onLongClickLabel: String
+        get() = appStrings.generic.selectItem
 
     override fun filterPredicate(filter: String): Boolean = (
         filter in passkey.displayName.lowercase() ||

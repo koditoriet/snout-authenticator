@@ -52,6 +52,8 @@
     <string name="secrets_lock_screen">Lock screen</string>
     <string name="secrets_settings">Settings</string>
     <string name="secrets_generate_one_time_code">Generate one-time code</string>
+    <string name="secrets_copy_one_time_code">"Copy code to clipboard"</string>
+    <string name="secrets_copied_one_time_code">"Code copied to clipboard"</string>
 
     <string name="secrets_add_secret_sheet_heading">Add Secret</string>
     <string name="secrets_add_secret_sheet_description">Choose a source to add a new account.</string>
