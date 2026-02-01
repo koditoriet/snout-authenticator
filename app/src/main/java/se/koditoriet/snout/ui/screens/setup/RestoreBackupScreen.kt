@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,7 +43,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.BackupSeed
-import se.koditoriet.snout.ui.components.InformationDialog
+import se.koditoriet.snout.ui.components.BadInputInformationDialog
 import se.koditoriet.snout.ui.components.MainButton
 import se.koditoriet.snout.ui.components.QrScannerScreen
 import se.koditoriet.snout.ui.components.SecondaryButton
@@ -62,7 +63,7 @@ fun RestoreBackupScreen(
     onRestore: (BackupSeed, Uri) -> Unit
 ) {
     val screenStrings = appStrings.seedInputScreen
-    val words = remember { MutableList(wordCount) { "" } }
+    val words = remember { mutableStateListOf(*Array(wordCount) { "" }) }
     val focusRequesters = remember { List(wordCount) { FocusRequester() } }
     val scope = rememberCoroutineScope()
     var scanSecretQRCode by remember { mutableStateOf(false) }
@@ -80,30 +81,31 @@ fun RestoreBackupScreen(
     )
 
     if (scanSecretQRCode) {
-        var invalidBackupSeed by remember { mutableStateOf(false) }
+        var invalidBackupSeedQR by remember { mutableStateOf(false) }
         QrScannerScreen(
             onQrScanned = {
-                if (!invalidBackupSeed) {
+                if (!invalidBackupSeedQR) {
                     // Don't interpret QR codes while the "invalid backup seed" dialog is active
                     try {
                         backupSeed = BackupSeed.fromUri(it.toUri())
                         importFileLauncher.launch(BACKUP_MIME_TYPES)
                         scanSecretQRCode = false
                     } catch (e: Exception) {
-                        invalidBackupSeed = true
+                        invalidBackupSeedQR = true
                         Log.w(TAG, "Scanned QR code is not a valid backup seed", e)
                     }
                 }
             }
         )
-        if (invalidBackupSeed) {
-            InformationDialog(
+        if (invalidBackupSeedQR) {
+            BadInputInformationDialog(
                 title = screenStrings.invalidSeedQRCode,
                 text = screenStrings.invalidSeedQRCodeDescription,
-                onDismiss = { invalidBackupSeed = false }
+                onDismiss = { invalidBackupSeedQR = false }
             )
         }
     } else {
+        var invalidBackupSeedPhrase by remember { mutableStateOf(false) }
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -144,12 +146,27 @@ fun RestoreBackupScreen(
                     Spacer(Modifier.height(SPACING_M))
                 }
 
+                if (invalidBackupSeedPhrase) {
+                    BadInputInformationDialog(
+                        title = screenStrings.invalidSeedPhrase,
+                        text = screenStrings.invalidSeedPhraseDescription,
+                        onDismiss = { invalidBackupSeedPhrase = false }
+                    )
+                }
+
+                val seedPhraseIsValid = words.all { it in seedWords }
                 MainButton(
                     text = screenStrings.restoreVault,
+                    enabled = seedPhraseIsValid,
                     onClick = {
-                        if (words.all { it.isNotBlank() && it in seedWords }) {
-                            backupSeed = BackupSeed.fromMnemonic(words)
-                            importFileLauncher.launch(BACKUP_MIME_TYPES)
+                        if (seedPhraseIsValid) {
+                            try {
+                                backupSeed = BackupSeed.fromMnemonic(words)
+                                importFileLauncher.launch(BACKUP_MIME_TYPES)
+                            } catch (e: Exception) {
+                                invalidBackupSeedPhrase = true
+                                Log.w(TAG, "Invalid seed phrase", e)
+                            }
                         }
                     },
                     secondaryButton = SecondaryButton(

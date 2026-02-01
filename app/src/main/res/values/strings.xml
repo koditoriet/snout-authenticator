@@ -43,6 +43,8 @@
     <string name="seed_input_scan_qr_code">Scan QR code</string>
     <string name="seed_input_invalid_qr_code">Invalid seed QR code</string>
     <string name="seed_input_invalid_qr_code_description">This QR code does not describe a valid backup seed.</string>
+    <string name="seed_input_invalid_seed_phrase">Invalid seed phrase</string>
+    <string name="seed_input_invalid_seed_phrase_description">The seed phrase you entered is invalid. Please double check it against your stored copy.</string>
 
 
     <!-- Restoring backup screen -->

@@ -26,11 +26,12 @@ import se.koditoriet.snout.credentialprovider.webauthn.AuthDataFlag
 import se.koditoriet.snout.credentialprovider.webauthn.CreateResponse
 import se.koditoriet.snout.credentialprovider.webauthn.PublicKeyCredentialCreationOptions
 import se.koditoriet.snout.crypto.AuthenticationFailedException
-import se.koditoriet.snout.ui.components.InformationDialog
+import se.koditoriet.snout.ui.components.BadInputInformationDialog
 import se.koditoriet.snout.ui.components.PasskeyIcon
 import se.koditoriet.snout.ui.components.sheet.BottomSheet
 import se.koditoriet.snout.ui.onIOThread
 import se.koditoriet.snout.ui.components.ThemedEmptySpace
+import se.koditoriet.snout.ui.components.WarningInformationDialog
 import se.koditoriet.snout.ui.screens.main.passkeys.sheets.EditPasskeyNameSheet
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
@@ -69,14 +70,14 @@ class CreatePasskeyActivity : FragmentActivity() {
                     PasskeyIcon(Modifier.size(BACKGROUND_ICON_SIZE))
 
                     if (credentialAlreadyExists(passkeys, requestInfo)) {
-                        InformationDialog(
+                        BadInputInformationDialog(
                             title = screenStrings.passkeyAlreadyExists,
                             text = screenStrings.passkeyAlreadyExistsExplanation,
                             onDismiss = { finishWithResponse(null) }
                         )
                     }
                     if (!requestInfo.isValid) {
-                        InformationDialog(
+                        WarningInformationDialog(
                             title = screenStrings.unableToEstablishTrust,
                             text = screenStrings.unableToEstablishTrustExplanation,
                             onDismiss = { finishWithResponse(null) }

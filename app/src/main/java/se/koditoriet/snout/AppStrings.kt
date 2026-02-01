@@ -74,6 +74,8 @@ class AppStrings(private val ctx: Context) {
         val scanQRCode by ctx.s(R.string.seed_input_scan_qr_code)
         val invalidSeedQRCode by ctx.s(R.string.seed_input_invalid_qr_code)
         val invalidSeedQRCodeDescription by ctx.s(R.string.seed_input_invalid_qr_code_description)
+        val invalidSeedPhrase by ctx.s(R.string.seed_input_invalid_seed_phrase)
+        val invalidSeedPhraseDescription by ctx.s(R.string.seed_input_invalid_seed_phrase_description)
     }
 
     class RestoringBackupScreen(private val ctx: Context) {

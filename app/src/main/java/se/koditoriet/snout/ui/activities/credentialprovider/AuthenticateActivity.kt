@@ -29,9 +29,9 @@ import se.koditoriet.snout.credentialprovider.webauthn.AuthResponse
 import se.koditoriet.snout.credentialprovider.webauthn.PublicKeyCredentialRequestOptions
 import se.koditoriet.snout.credentialprovider.webauthn.SignedAuthResponse
 import se.koditoriet.snout.crypto.AuthenticationFailedException
-import se.koditoriet.snout.ui.components.InformationDialog
 import se.koditoriet.snout.ui.components.PasskeyIcon
 import se.koditoriet.snout.ui.components.ThemedEmptySpace
+import se.koditoriet.snout.ui.components.WarningInformationDialog
 import se.koditoriet.snout.ui.theme.BACKGROUND_ICON_SIZE
 import se.koditoriet.snout.ui.theme.SnoutTheme
 import se.koditoriet.snout.vault.CredentialId
@@ -95,7 +95,7 @@ class AuthenticateActivity : FragmentActivity() {
                 }
 
                 if (showUnableToEstablishTrustDialog.value) {
-                    InformationDialog(
+                    WarningInformationDialog(
                         title = screenStrings.unableToEstablishTrust,
                         text = screenStrings.unableToEstablishTrustExplanation,
                         onDismiss = { finishWithResult(null) },

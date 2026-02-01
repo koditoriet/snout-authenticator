@@ -42,15 +42,56 @@ fun IrrevocableActionConfirmationDialog(
 }
 
 @Composable
-fun InformationDialog(
+fun BadInputInformationDialog(
     title: String,
     text: String,
+    onDismiss: () -> Unit,
+) {
+    InformationDialog(
+        title = title,
+        text = text,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.WarningAmber,
+                contentDescription = null,
+            )
+        },
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+fun WarningInformationDialog(
+    title: String,
+    text: String,
+    onDismiss: () -> Unit,
+) {
+    InformationDialog(
+        title = title,
+        text = text,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.WarningAmber,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
+        },
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+private fun InformationDialog(
+    title: String,
+    text: String,
+    icon: @Composable () -> Unit = { },
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(text) },
+        icon = icon,
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(appStrings.generic.ok)
