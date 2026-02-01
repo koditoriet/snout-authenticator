@@ -39,7 +39,7 @@ import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.vault.Passkey
 import se.koditoriet.snout.viewmodel.SnoutViewModel
 
-private val TAG = "CreatePasskeyActivity"
+private const val TAG = "CreatePasskeyActivity"
 
 class CreatePasskeyActivity : FragmentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)

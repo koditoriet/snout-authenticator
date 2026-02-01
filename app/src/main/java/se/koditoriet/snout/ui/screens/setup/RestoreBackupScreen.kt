@@ -2,6 +2,7 @@ package se.koditoriet.snout.ui.screens.setup
 
 import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -39,8 +41,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.net.toUri
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import se.koditoriet.snout.appStrings
 import se.koditoriet.snout.crypto.BackupSeed
 import se.koditoriet.snout.ui.components.BadInputInformationDialog
@@ -62,12 +62,9 @@ fun RestoreBackupScreen(
     seedWords: Set<String>,
     onRestore: (BackupSeed, Uri) -> Unit
 ) {
-    val screenStrings = appStrings.seedInputScreen
-    val words = remember { mutableStateListOf(*Array(wordCount) { "" }) }
-    val focusRequesters = remember { List(wordCount) { FocusRequester() } }
-    val scope = rememberCoroutineScope()
     var scanSecretQRCode by remember { mutableStateOf(false) }
     var backupSeed by remember { mutableStateOf<BackupSeed?>(null) }
+    val words = remember { mutableStateListOf(*Array(wordCount) { "" }) }
 
     val importFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -81,115 +78,154 @@ fun RestoreBackupScreen(
     )
 
     if (scanSecretQRCode) {
-        var invalidBackupSeedQR by remember { mutableStateOf(false) }
-        QrScannerScreen(
-            onQrScanned = {
-                if (!invalidBackupSeedQR) {
-                    // Don't interpret QR codes while the "invalid backup seed" dialog is active
-                    try {
-                        backupSeed = BackupSeed.fromUri(it.toUri())
-                        importFileLauncher.launch(BACKUP_MIME_TYPES)
-                        scanSecretQRCode = false
-                    } catch (e: Exception) {
-                        invalidBackupSeedQR = true
-                        Log.w(TAG, "Scanned QR code is not a valid backup seed", e)
-                    }
-                }
+        SeedQRCodeInput(
+            onCancel = { scanSecretQRCode = false },
+            onContinue = {
+                backupSeed = it
+                importFileLauncher.launch(BACKUP_MIME_TYPES)
+                scanSecretQRCode = false
             }
         )
-        if (invalidBackupSeedQR) {
-            BadInputInformationDialog(
-                title = screenStrings.invalidSeedQRCode,
-                text = screenStrings.invalidSeedQRCodeDescription,
-                onDismiss = { invalidBackupSeedQR = false }
+    } else {
+        SeedPhraseInput(
+            wordCount = wordCount,
+            seedWords = seedWords,
+            state = words,
+            onScanQRClick = {
+                scanSecretQRCode = true
+            },
+            onContinue = {
+                backupSeed = it
+                importFileLauncher.launch(BACKUP_MIME_TYPES)
+            }
+        )
+    }
+}
+
+@Composable
+private fun SeedQRCodeInput(
+    onCancel: () -> Unit,
+    onContinue: (BackupSeed) -> Unit,
+) {
+    val screenStrings = appStrings.seedInputScreen
+    var invalidBackupSeedQR by remember { mutableStateOf(false) }
+
+    BackHandler {
+        onCancel()
+    }
+
+    QrScannerScreen(
+        onQrScanned = {
+            if (!invalidBackupSeedQR) {
+                // Don't interpret QR codes while the "invalid backup seed" dialog is active
+                try {
+                    onContinue(BackupSeed.fromUri(it.toUri()))
+                } catch (e: Exception) {
+                    invalidBackupSeedQR = true
+                    Log.w(TAG, "Scanned QR code is not a valid backup seed", e)
+                }
+            }
+        }
+    )
+    if (invalidBackupSeedQR) {
+        BadInputInformationDialog(
+            title = screenStrings.invalidSeedQRCode,
+            text = screenStrings.invalidSeedQRCodeDescription,
+            onDismiss = { invalidBackupSeedQR = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SeedPhraseInput(
+    wordCount: Int,
+    seedWords: Set<String>,
+    state: SnapshotStateList<String>,
+    onScanQRClick: () -> Unit,
+    onContinue: (BackupSeed) -> Unit,
+) {
+    val screenStrings = appStrings.seedInputScreen
+    var invalidBackupSeedPhrase by remember { mutableStateOf(false) }
+    val focusRequesters = remember { List(wordCount) { FocusRequester() } }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(screenStrings.enterRecoveryPhrase) }
             )
         }
-    } else {
-        var invalidBackupSeedPhrase by remember { mutableStateOf(false) }
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text(screenStrings.enterRecoveryPhrase) }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            Column(
+                modifier = Modifier
+                    .padding(PADDING_XL)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    verticalArrangement = Arrangement.spacedBy(SPACING_S),
+                    horizontalArrangement = Arrangement.spacedBy(SPACING_M),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(wordCount) { index ->
+                        SeedWordInput(
+                            index = index,
+                            words = state[index],
+                            isLastWord = index == wordCount - 1,
+                            seedWords = seedWords,
+                            onValueChange = { state[index] = it },
+                            onNextWord = { focusRequesters[index + 1].requestFocus() },
+                            focusRequester = focusRequesters[index],
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(SPACING_M))
+            }
+
+            if (invalidBackupSeedPhrase) {
+                BadInputInformationDialog(
+                    title = screenStrings.invalidSeedPhrase,
+                    text = screenStrings.invalidSeedPhraseDescription,
+                    onDismiss = { invalidBackupSeedPhrase = false }
                 )
             }
-        ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
-                Column(
-                    modifier = Modifier
-                        .padding(PADDING_XL)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        verticalArrangement = Arrangement.spacedBy(SPACING_S),
-                        horizontalArrangement = Arrangement.spacedBy(SPACING_M),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        items(wordCount) { index ->
-                            SeedWordInput(
-                                index = index,
-                                isLastWord = index == wordCount - 1,
-                                seedWords = seedWords,
-                                onValueChange = { words[index] = it },
-                                onNextWord = {
-                                    scope.launch {
-                                        delay(50)
-                                        focusRequesters[index + 1].requestFocus()
-                                    }
-                                },
-                                focusRequester = focusRequesters[index],
-                            )
+
+            val seedPhraseIsValid = state.all { it in seedWords }
+            MainButton(
+                text = screenStrings.restoreVault,
+                enabled = seedPhraseIsValid,
+                onClick = {
+                    if (seedPhraseIsValid) {
+                        try {
+                            onContinue(BackupSeed.fromMnemonic(state))
+                        } catch (e: Exception) {
+                            invalidBackupSeedPhrase = true
+                            Log.w(TAG, "Invalid seed phrase", e)
                         }
                     }
-
-                    Spacer(Modifier.height(SPACING_M))
-                }
-
-                if (invalidBackupSeedPhrase) {
-                    BadInputInformationDialog(
-                        title = screenStrings.invalidSeedPhrase,
-                        text = screenStrings.invalidSeedPhraseDescription,
-                        onDismiss = { invalidBackupSeedPhrase = false }
-                    )
-                }
-
-                val seedPhraseIsValid = words.all { it in seedWords }
-                MainButton(
-                    text = screenStrings.restoreVault,
-                    enabled = seedPhraseIsValid,
-                    onClick = {
-                        if (seedPhraseIsValid) {
-                            try {
-                                backupSeed = BackupSeed.fromMnemonic(words)
-                                importFileLauncher.launch(BACKUP_MIME_TYPES)
-                            } catch (e: Exception) {
-                                invalidBackupSeedPhrase = true
-                                Log.w(TAG, "Invalid seed phrase", e)
-                            }
-                        }
-                    },
-                    secondaryButton = SecondaryButton(
-                        text = screenStrings.scanQRCode,
-                        onClick = { scanSecretQRCode = true },
-                    ),
-                )
-            }
+                },
+                secondaryButton = SecondaryButton(
+                    text = screenStrings.scanQRCode,
+                    onClick = onScanQRClick,
+                ),
+            )
         }
     }
 }
 
 @Composable
-fun SeedWordInput(
+private fun SeedWordInput(
     index: Int,
+    words: String,
     isLastWord: Boolean,
     seedWords: Set<String>,
     onValueChange: (String) -> Unit,
     onNextWord: () -> Unit,
     focusRequester: FocusRequester,
 ) {
-    var value by remember { mutableStateOf("") }
-
     Column {
         Text(
             text = (index + 1).toString(),
@@ -198,11 +234,11 @@ fun SeedWordInput(
         )
 
         OutlinedTextField(
-            value = value,
+            value = words,
             onValueChange = {
-                value = it.lowercase().trim()
-                onValueChange(value)
-                if (it.endsWith(" ") && !isLastWord && it.trim() in seedWords) {
+                val trimmedWord = it.lowercase().trim()
+                onValueChange(trimmedWord)
+                if (it.endsWith(" ") && !isLastWord && trimmedWord in seedWords) {
                     onNextWord()
                 }
             },
@@ -213,7 +249,7 @@ fun SeedWordInput(
                 .focusRequester(focusRequester)
                 .fillMaxWidth(),
             singleLine = true,
-            isError = value.isNotBlank() && value !in seedWords,
+            isError = words.isNotBlank() && words !in seedWords,
             textStyle = LocalTextStyle.current.copy(
                 fontFamily = FontFamily.Monospace
             ),

@@ -38,7 +38,7 @@ import se.koditoriet.snout.vault.CredentialId
 import se.koditoriet.snout.vault.Passkey
 import se.koditoriet.snout.viewmodel.SnoutViewModel
 
-private val TAG = "AuthenticateActivity"
+private const val TAG = "AuthenticateActivity"
 
 class AuthenticateActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
